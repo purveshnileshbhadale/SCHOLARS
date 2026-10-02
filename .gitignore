@@ -1,0 +1,10 @@
+.env
+node_modules/
+*.log
+.DS_Store
+tmp_check.js
+__pycache__/
+server.log
+server.err.log
+.tmp*
+test_tmp*

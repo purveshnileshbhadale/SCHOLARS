@@ -1,0 +1,14 @@
+{
+  "name": "scholars-abroad-ivy-profile-builder",
+  "version": "1.0.0",
+  "description": "Scholars Abroad – Ivy Profile Builder with ScholarAI study-abroad mentor (Groq API)",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-logic.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

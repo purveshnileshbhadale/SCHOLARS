@@ -1,0 +1,3749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scholars Abroad – Ivy Profile Builder</title>
+<meta name="description" content="Build a strong profile for Ivy League admissions. Grade 8 to UG.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F6F7; --card:#FFFFFF; --ink:#13222F; --muted:#55626D; --border:#E3E7EB;
+  --primary:#1D5A47; --primary-dk:#164536; --tint:#E2F0EA;
+  --reach-bg:#E3ECF8; --reach-fg:#1F4E8C; --high-bg:#FBEFD9; --high-fg:#8A4F08;
+  --weak:#B8741A; --r:18px; --focus:2px solid var(--primary);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit;margin:0}
+button{cursor:pointer;background:none;border:none;padding:0}
+a{color:var(--primary)}
+h1,h2,h3,h4,p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:var(--focus);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.ic{width:22px;height:22px;flex:none;display:block}
+.ic-sm{width:18px;height:18px}
+.ic-lg{width:26px;height:26px}
+
+/* ---------- shell ---------- */
+.shell{min-height:100vh;display:flex;flex-direction:column}
+.main{flex:1;width:100%;padding-bottom:96px}
+.content{max-width:1200px;margin:0 auto;padding:20px 16px 40px}
+.sidebar{display:none}
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;
+  border-top:1px solid var(--border);display:flex;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+.tabbar a{
+  flex:1;min-width:0;min-height:52px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;
+  font-size:10.5px;font-weight:700;letter-spacing:.01em;color:var(--muted);
+  text-decoration:none;border-radius:12px;transition:color .15s,background .15s;
+}
+.tabbar a[aria-current="page"]{color:var(--primary);background:var(--tint)}
+@media (min-width:768px){
+  .tabbar{display:none}
+  .main{margin-left:236px;padding-bottom:0}
+  .content{padding:32px 32px 64px}
+  .sidebar{
+    display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;width:236px;
+    background:#fff;border-right:1px solid var(--border);padding:22px 14px;z-index:30;gap:4px;
+  }
+}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 18px;text-decoration:none;color:var(--ink)}
+.brand-mark{
+  width:34px;height:34px;border-radius:10px;background:var(--primary);color:#fff;
+  display:grid;place-items:center;font-weight:800;font-size:15px;flex:none;
+}
+.brand b{display:block;font-size:14.5px;font-weight:800;line-height:1.15}
+.brand span{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.nav-link{
+  display:flex;align-items:center;gap:11px;min-height:46px;padding:0 12px;border-radius:12px;
+  text-decoration:none;color:var(--muted);font-weight:700;font-size:14.5px;transition:background .15s,color .15s;
+}
+.nav-link:hover{background:var(--bg);color:var(--ink)}
+.nav-link[aria-current="page"]{background:var(--tint);color:var(--primary)}
+.side-foot{margin-top:auto;padding:12px 10px 0;border-top:1px solid var(--border)}
+.side-foot p{font-size:12px;color:var(--muted);line-height:1.45}
+
+/* ---------- primitives ---------- */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px;
+}
+.card-tap{display:block;width:100%;text-align:left;transition:border-color .15s,background .15s}
+.card-tap:hover{border-color:#cfd6dc}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+.h1{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.h2{font-size:19px;font-weight:800;letter-spacing:-.01em;line-height:1.3}
+.h3{font-size:16px;font-weight:700;line-height:1.35}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:22px}
+.row{display:flex;align-items:center;gap:12px}
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.page-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:20px}
+.page-head .grow{flex:1;min-width:0}
+.grid-2{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:900px){.grid-2{grid-template-columns:1fr 1fr}}
+@media (min-width:1000px){.grid-home{grid-template-columns:360px 1fr;align-items:start}}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:46px;padding:11px 22px;border-radius:999px;font-weight:700;font-size:15px;
+  border:1.5px solid transparent;text-decoration:none;transition:background .15s,border-color .15s,color .15s;
+}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dk)}
+.btn-ghost{background:#fff;border-color:var(--border);color:var(--ink)}
+.btn-ghost:hover{border-color:#c9d1d8;background:#fafbfb}
+.btn-soft{background:var(--tint);color:var(--primary)}
+.btn-soft:hover{background:#d4e8de}
+.btn-danger{background:#fff;border-color:#E7C9C9;color:#9B2C2C}
+.btn-danger:hover{background:#FDF4F4}
+.btn-block{width:100%}
+.btn-sm{min-height:40px;padding:8px 16px;font-size:14px}
+.icon-btn{
+  width:44px;height:44px;display:grid;place-items:center;border-radius:12px;
+  color:var(--muted);transition:background .15s,color .15s;
+}
+.icon-btn:hover{background:var(--bg);color:var(--ink)}
+.link-btn{
+  display:inline-flex;align-items:center;gap:6px;min-height:44px;
+  font-weight:700;font-size:14.5px;color:var(--primary);text-decoration:none;
+}
+.link-btn:hover{text-decoration:underline}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:999px;
+  font-size:12.5px;font-weight:700;white-space:nowrap;
+}
+.chip-reach{background:var(--reach-bg);color:var(--reach-fg)}
+.chip-high{background:var(--high-bg);color:var(--high-fg)}
+.chip-soft{background:var(--tint);color:var(--primary)}
+.chip-grey{background:#ECEFF1;color:var(--muted)}
+.chip-points{background:var(--tint);color:var(--primary);font-weight:800}
+.chip-na{background:#ECEFF1;color:var(--muted)}
+
+.seg{display:flex;gap:4px;background:#E9EDEF;border-radius:999px;padding:4px}
+.seg button{
+  flex:1;min-height:44px;padding:8px 12px;border-radius:999px;font-weight:700;font-size:14px;
+  color:var(--muted);transition:background .15s,color .15s,box-shadow .15s;
+}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(19,34,47,.1)}
+
+.bar{height:9px;background:#EBEEF0;border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--primary);border-radius:inherit;transition:width .2s ease}
+.bar.weak i{background:var(--weak)}
+.bar-row{display:flex;flex-direction:column;gap:6px}
+.bar-label{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:700}
+.bar-label span:last-child{color:var(--muted);font-weight:700}
+
+.dots{display:flex;gap:5px}
+.dots i{width:11px;height:11px;border-radius:50%;background:#DDE2E6;display:block}
+.dots i.on{background:var(--primary)}
+
+.progress{height:9px;background:#E7EAEC;border-radius:999px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--primary);border-radius:inherit;transition:width .2s}
+
+/* ---------- forms ---------- */
+.field{display:flex;flex-direction:column;gap:6px}
+.field > label,.label{font-size:13.5px;font-weight:700}
+.input,.select,.textarea{
+  width:100%;min-height:48px;background:#fff;border:1.5px solid var(--border);
+  border-radius:13px;padding:11px 14px;font-size:15.5px;transition:border-color .15s;
+}
+.textarea{min-height:96px;resize:vertical;line-height:1.5}
+.input:hover,.select:hover,.textarea:hover{border-color:#cfd6dc}
+.input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,90,71,.14)}
+.input.bad,.textarea.bad,.select.bad{border-color:#C0392B}
+.hint{font-size:12.5px;color:var(--muted)}
+.err{font-size:12.5px;color:#A61B1B;font-weight:600}
+.counter{text-align:right;font-size:12px;color:var(--muted);font-weight:600}
+.counter.over{color:#A61B1B}
+.chip-row{display:flex;flex-wrap:wrap;gap:9px}
+.chip-btn{
+  min-height:44px;padding:9px 17px;border-radius:999px;border:1.5px solid var(--border);
+  background:#fff;font-size:14.5px;font-weight:700;color:var(--ink);
+  display:inline-flex;align-items:center;gap:7px;transition:.15s;
+}
+.chip-btn:hover{border-color:#c2cbd2}
+.chip-btn[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.tile{
+  min-height:66px;border-radius:16px;border:1.5px solid var(--border);background:#fff;
+  font-size:20px;font-weight:800;color:var(--ink);transition:.15s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+}
+.tile small{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.tile:hover{border-color:#c2cbd2}
+.tile[aria-pressed="true"]{border-color:var(--primary);background:var(--tint);color:var(--primary)}
+.tile[aria-pressed="true"] small{color:var(--primary)}
+.seg-field{display:flex;flex-direction:column;gap:7px}
+.consent{
+  display:flex;gap:11px;align-items:flex-start;background:var(--tint);border-radius:14px;
+  padding:14px 16px;font-size:13.5px;line-height:1.5;color:#14453A;font-weight:600;
+}
+.consent input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--primary)}
+
+/* ---------- onboarding ---------- */
+.ob{max-width:640px;margin:0 auto;padding:24px 16px 60px}
+.ob-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.ob-logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14.5px}
+.ob-steps{display:flex;gap:6px;margin-bottom:22px}
+.ob-steps i{height:7px;flex:1;background:#E2E6E9;border-radius:999px;transition:background .2s}
+.ob-steps i.on{background:var(--primary)}
+.tip{
+  background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 16px;
+  font-size:14px;line-height:1.55;color:var(--muted);
+}
+.tip b{color:var(--ink)}
+
+/* ---------- home ---------- */
+.hello{margin-bottom:4px}
+.ring-wrap{position:relative;width:196px;height:196px;margin:6px auto 2px}
+.ring-wrap svg{width:100%;height:100%;display:block}
+.ring-center{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+}
+.ring-score{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.ring-score sub{font-size:15px;font-weight:700;color:var(--muted);vertical-align:baseline}
+.ring-status{font-size:13px;font-weight:800;color:var(--primary);margin-top:5px}
+.ring-note{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px}
+.move-card{background:var(--primary);color:#fff;border:none;border-radius:20px;padding:22px}
+.move-card .eyebrow{color:#9FD3C0}
+.move-card h3{font-size:20px;font-weight:800;line-height:1.3;margin-top:8px;letter-spacing:-.01em}
+.move-card p{font-size:14px;color:#CBE4DA;margin-top:8px;line-height:1.55}
+.move-card .move-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.move-card .chip{background:rgba(255,255,255,.16);color:#EAF6F1}
+.move-actions{display:flex;gap:10px;margin-top:18px}
+.move-actions .btn{flex:1}
+.move-actions .btn-white{background:#fff;color:var(--primary)}
+.move-actions .btn-white:hover{background:#EDF6F2}
+.move-actions .btn-outline{border-color:rgba(255,255,255,.5);color:#fff}
+.move-actions .btn-outline:hover{background:rgba(255,255,255,.12)}
+.target-card{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:15px 18px;
+  background:#fff;border:1px solid var(--border);border-radius:16px;
+  text-decoration:none;color:var(--ink);transition:border-color .15s;
+}
+.target-card:hover{border-color:#c9d1d8}
+.target-rank{font-size:13px;font-weight:800;color:var(--muted);width:18px;flex:none}
+.target-name{display:block;font-weight:800;font-size:15.5px}
+.target-card .uni-sub{display:block}
+.badge-change{
+  display:inline-flex;align-items:center;gap:5px;background:var(--tint);color:var(--primary);
+  font-size:12.5px;font-weight:800;padding:5px 11px;border-radius:999px;
+}
+
+/* ---------- profile ---------- */
+.pillar-card{display:flex;flex-direction:column;gap:12px}
+.pillar-icon{
+  width:42px;height:42px;border-radius:13px;background:var(--tint);color:var(--primary);
+  display:grid;place-items:center;flex:none;
+}
+.pillar-top{display:flex;align-items:center;gap:13px}
+.pct{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.entry-item{display:flex;gap:13px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--border)}
+.entry-item:last-child{border-bottom:none;padding-bottom:0}
+.entry-item:first-child{padding-top:0}
+.entry-main{flex:1;min-width:0}
+.entry-main h4{font-size:15.5px;font-weight:800}
+.entry-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.entry-actions{display:flex;gap:2px;flex:none}
+.fab{
+  position:fixed;right:84px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:35;
+  min-height:52px;padding:0 22px;border-radius:999px;background:var(--primary);color:#fff;
+  font-weight:800;font-size:15px;display:inline-flex;align-items:center;gap:8px;
+  box-shadow:0 6px 20px rgba(19,34,47,.18);transition:background .15s,transform .15s;
+}
+.fab:hover{background:var(--primary-dk)}
+.fab:active{transform:scale(.98)}
+@media (min-width:768px){.fab{bottom:26px;right:26px}}
+
+/* ---------- empty ---------- */
+.empty{
+  text-align:center;padding:34px 22px;border:1.5px dashed #D4DADF;border-radius:var(--r);
+  background:#FBFCFC;
+}
+.empty .pillar-icon{margin:0 auto 13px}
+.empty h4{font-size:16.5px;font-weight:800}
+.empty p{font-size:14px;color:var(--muted);margin-top:7px;line-height:1.55;max-width:380px;margin-left:auto;margin-right:auto}
+.empty .btn{margin-top:16px}
+
+/* ---------- chances ---------- */
+.uni-row{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:15px 17px;
+  background:#fff;border:1px solid var(--border);border-radius:16px;
+  text-decoration:none;color:var(--ink);transition:border-color .15s;
+}
+.uni-row:hover{border-color:#c9d1d8}
+.uni-rank{
+  width:30px;height:30px;border-radius:50%;background:var(--bg);display:grid;place-items:center;
+  font-size:13px;font-weight:800;color:var(--muted);flex:none;
+}
+.uni-main{flex:1;min-width:0}
+.uni-main h4{font-size:15.5px;font-weight:800;color:var(--ink)}
+.uni-sub{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-top:3px}
+.disclaimer{
+  background:#fff;border:1px solid var(--border);border-left:4px solid var(--weak);
+  border-radius:14px;padding:15px 17px;font-size:13.5px;line-height:1.6;color:var(--muted);
+}
+.disclaimer b{color:var(--ink)}
+.honest-list{display:flex;flex-direction:column;gap:9px}
+.honest-list li{display:flex;gap:10px;font-size:14px;line-height:1.5;color:var(--muted)}
+.honest-list li svg{color:var(--weak);margin-top:2px}
+.act-item{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 16px;
+  background:#fff;border:1px solid var(--border);border-radius:14px;font-weight:700;font-size:14.5px;
+  min-height:56px;text-decoration:none;color:var(--ink);
+  transition:border-color .15s,background .15s;
+}
+.act-item:hover{border-color:var(--primary);background:#F7FBF9}
+.act-item .grow{flex:1;min-width:0}
+.why-card{background:var(--tint);border:none;border-radius:16px;padding:18px}
+.why-card h4{font-size:15px;font-weight:800;color:#14453A}
+.why-card p{font-size:14px;color:#26564A;margin-top:7px;line-height:1.6}
+
+/* ---------- roadmap ---------- */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{
+  min-height:44px;padding:9px 17px;border-radius:999px;border:1.5px solid var(--border);
+  background:#fff;font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap;transition:.15s;
+}
+.tabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.task{
+  display:flex;gap:13px;align-items:flex-start;padding:16px;background:#fff;
+  border:1px solid var(--border);border-radius:16px;transition:.15s;
+}
+.task.done{background:#FAFBFB;opacity:.72}
+.task-check{
+  width:26px;height:26px;border-radius:50%;border:2px solid #C6CDD3;flex:none;margin-top:2px;
+  display:grid;place-items:center;color:transparent;transition:.15s;background:#fff;
+}
+.task.done .task-check{background:var(--primary);border-color:var(--primary);color:#fff}
+.task-body{flex:1;min-width:0}
+.task-body h4{font-size:15px;font-weight:800;line-height:1.4}
+.task.done .task-body h4{text-decoration:line-through;color:var(--muted)}
+.task-meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:9px}
+.task-toggle{display:flex;gap:13px;align-items:flex-start;width:100%;text-align:left}
+
+/* ---------- settings ---------- */
+.danger-zone{border-color:#EAD5D5}
+.danger-zone h3{color:#9B2C2C}
+
+/* ---------- toast / modal ---------- */
+#toast-host{position:fixed;top:14px;left:0;right:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 14px}
+.toast{
+  background:var(--ink);color:#fff;font-size:14.5px;font-weight:700;padding:13px 20px;
+  border-radius:999px;box-shadow:0 8px 24px rgba(19,34,47,.25);max-width:560px;text-align:center;
+  animation:toast-in .18s ease;
+}
+@keyframes toast-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(19,34,47,.5);z-index:70;display:grid;place-items:center;
+  padding:18px;animation:fade .15s ease;
+}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{
+  background:#fff;border-radius:20px;padding:24px;width:100%;max-width:460px;
+  max-height:88vh;overflow:auto;animation:pop .16s ease;
+}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.modal h3{font-size:19px;font-weight:800}
+.modal .stack{margin-top:16px}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions .btn{flex:1}
+
+/* ---------- impact box ---------- */
+.impact{
+  background:var(--tint);border-radius:16px;padding:16px 18px;
+}
+.impact h4{font-size:13px;font-weight:800;color:#14453A;text-transform:uppercase;letter-spacing:.05em}
+.impact-main{font-size:17px;font-weight:800;color:#14453A;margin-top:8px;line-height:1.4}
+.impact-sub{font-size:13px;color:#3B6B5D;margin-top:6px;line-height:1.5}
+
+.strength-list li,.gap-list li{
+  display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.5;padding:7px 0;
+}
+.strength-list li svg{color:var(--primary);flex:none;margin-top:2px}
+.gap-list li svg{color:var(--weak);flex:none;margin-top:2px}
+.divider{height:1px;background:var(--border);margin:4px 0}
+
+/* ---------- live dates & live data ---------- */
+.date-list li{display:flex;gap:13px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.date-list li:last-child{border-bottom:none;padding-bottom:0}
+.date-list li:first-child{padding-top:0}
+.date-badge{
+  width:54px;flex:none;text-align:center;background:var(--bg);border:1px solid var(--border);
+  border-radius:12px;padding:6px 0;line-height:1.15;
+}
+.date-badge b{display:block;font-size:16px;font-weight:800}
+.date-badge span{display:block;font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.date-main{flex:1;min-width:0}
+.date-main b{display:block;font-size:14.5px;font-weight:800}
+.date-main span{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-top:2px}
+.date-side{text-align:right;flex:none}
+.date-cd{font-size:13px;font-weight:800;color:var(--primary);white-space:nowrap}
+.date-cd.soon{color:var(--weak)}
+.live-dot{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.live-dot i{
+  width:8px;height:8px;border-radius:50%;background:var(--primary);flex:none;
+  box-shadow:0 0 0 3px rgba(29,90,71,.18);animation:pulse 2s ease infinite;
+}
+.live-dot.off i{background:var(--weak);box-shadow:0 0 0 3px rgba(184,116,26,.18);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.impact-live{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:12px;
+  border-top:1px solid rgba(20,69,58,.18);
+}
+.impact-live span{
+  font-size:12.5px;font-weight:700;color:#14453A;background:rgba(255,255,255,.75);
+  border-radius:999px;padding:5px 11px;
+}
+.impact-live b{font-weight:800}
+.impact-live .up{color:var(--primary)}
+.impact-live .down{color:#8A4F08}
+.uni-live-body{display:flex;gap:16px;align-items:flex-start}
+.uni-live-img{
+  width:76px;height:76px;border-radius:14px;object-fit:cover;flex:none;
+  background:var(--bg);border:1px solid var(--border);
+}
+.uni-live-text{flex:1;min-width:0;font-size:14.5px;line-height:1.62;color:var(--muted)}
+.uni-live-text b{color:var(--ink)}
+.uni-live-src{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px;
+  font-size:12px;color:var(--muted);font-weight:600;
+}
+.uni-live-src a{color:var(--primary);text-decoration:none;font-weight:700}
+.uni-live-src a:hover{text-decoration:underline}
+.skeleton{
+  background:linear-gradient(90deg,#EEF1F3 25%,#F6F8F9 50%,#EEF1F3 75%);
+  background-size:400% 100%;animation:shimmer 1.3s ease infinite;
+  border-radius:8px;height:13px;margin-top:9px;
+}
+.skeleton.w60{width:60%}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+.date-sources{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:12.5px;font-weight:700}
+.date-sources a{color:var(--primary);text-decoration:none}
+.date-sources a:hover{text-decoration:underline}
+
+/* ---------- ScholarAI chat ---------- */
+.chat-fab{
+  position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:55;
+  width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;
+  display:grid;place-items:center;box-shadow:0 10px 26px rgba(29,90,71,.35);
+  transition:background .15s, transform .15s;
+}
+.chat-fab:hover{background:var(--primary-dk)}
+.chat-fab .ic{width:26px;height:26px}
+.chat-fab .chat-badge{
+  position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;
+  background:#2FBF71;border:2.5px solid #fff;
+}
+.chat-fab .chat-badge.off{background:var(--weak)}
+.chat-panel{
+  position:fixed;right:14px;bottom:calc(146px + env(safe-area-inset-bottom));z-index:60;
+  width:min(420px, calc(100vw - 28px));height:min(560px, calc(100vh - 210px));
+  background:#fff;border:1px solid var(--border);border-radius:20px;overflow:hidden;
+  box-shadow:0 18px 50px rgba(19,34,47,.28);display:flex;flex-direction:column;
+  animation:pop .16s ease;
+}
+.chat-panel[hidden]{display:none}
+.chat-head{
+  display:flex;align-items:center;gap:11px;padding:12px 12px 12px 14px;
+  background:var(--primary);color:#fff;flex:none;
+}
+.chat-avatar{
+  width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);flex:none;
+  display:grid;place-items:center;font-weight:800;font-size:13.5px;
+}
+.chat-head .grow{flex:1;min-width:0}
+.chat-head b{display:block;font-size:15px;font-weight:800;line-height:1.2}
+.chat-head .chat-status{display:block;font-size:11.5px;color:#BFE0D4;font-weight:700;margin-top:1px}
+.chat-head .icon-btn{color:#CFE7DE;width:44px;height:44px}
+.chat-head .icon-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+.chat-msgs{
+  flex:1;min-height:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;
+  gap:10px;background:var(--bg);
+}
+.chat-bubble{
+  max-width:88%;padding:10px 13px;border-radius:15px;font-size:14px;line-height:1.55;
+  word-wrap:break-word;overflow-wrap:anywhere;
+}
+.chat-bubble.user{align-self:flex-end;background:var(--primary);color:#fff;border-bottom-right-radius:5px;white-space:pre-wrap}
+.chat-bubble.bot{align-self:flex-start;background:#fff;border:1px solid var(--border);border-bottom-left-radius:5px;color:var(--ink)}
+.chat-bubble.bot p{margin:0 0 7px}
+.chat-bubble.bot p:last-child{margin-bottom:0}
+.chat-bubble.bot b{font-weight:800}
+.chat-h{font-weight:800;font-size:13.5px;margin:9px 0 4px;color:var(--primary)}
+.chat-ul{margin:4px 0 8px;padding-left:2px;list-style:none}
+.chat-ul li{position:relative;padding-left:16px;margin:3px 0;font-size:13.5px;line-height:1.5}
+.chat-ul li::before{content:"•";position:absolute;left:2px;color:var(--primary);font-weight:800}
+ol.chat-ul{counter-reset:cn}
+ol.chat-ul li{counter-increment:cn}
+ol.chat-ul li::before{content:counter(cn) "."}
+.chat-table{border-collapse:collapse;width:100%;margin:7px 0 9px;font-size:12.5px;display:block;overflow-x:auto}
+.chat-table th,.chat-table td{border:1px solid var(--border);padding:6px 8px;text-align:left;white-space:nowrap}
+.chat-table th{background:var(--tint);color:#14453A;font-weight:800}
+.chat-code{
+  background:#EDF1F3;border-radius:6px;padding:1px 6px;font-size:12.5px;
+  font-family:ui-monospace,Consolas,monospace;
+}
+.chat-typing{
+  align-self:flex-start;display:flex;gap:5px;align-items:center;
+  padding:13px 15px;background:#fff;border:1px solid var(--border);border-radius:15px;
+  border-bottom-left-radius:5px;
+}
+.chat-typing i{
+  width:7px;height:7px;border-radius:50%;background:#AEB8C0;display:block;
+  animation:chat-blink 1.2s infinite;
+}
+.chat-typing i:nth-child(2){animation-delay:.2s}
+.chat-typing i:nth-child(3){animation-delay:.4s}
+@keyframes chat-blink{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.chat-form{
+  display:flex;gap:8px;align-items:flex-end;padding:10px;
+  border-top:1px solid var(--border);background:#fff;flex:none;
+}
+.chat-input{
+  flex:1;min-width:0;resize:none;border:1.5px solid var(--border);border-radius:14px;
+  padding:11px 13px;font-size:14.5px;line-height:1.45;min-height:46px;max-height:110px;
+  font-family:inherit;background:#fff;
+}
+.chat-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,90,71,.14)}
+.chat-send{
+  width:46px;height:46px;flex:none;border-radius:50%;background:var(--primary);color:#fff;
+  display:grid;place-items:center;transition:background .15s;
+}
+.chat-send:hover{background:var(--primary-dk)}
+.chat-send:disabled{opacity:.45;cursor:default}
+.chat-disclaimer{
+  align-self:center;max-width:92%;text-align:center;font-size:10.5px;color:var(--muted);
+  font-weight:600;padding:2px 6px 0;
+}
+@media (max-width:520px){
+  .chat-panel{left:14px;right:14px;width:auto}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;animation-iteration-count:1 !important}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast-host" aria-live="polite" aria-atomic="true"></div>
+<div id="modal-host"></div>
+<button class="chat-fab" id="chat-fab" data-action="chat-toggle" aria-expanded="false"
+        aria-label="Open ScholarAI study-abroad mentor">
+  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.8A2.3 2.3 0 0 1 6.8 4.5h10.4a2.3 2.3 0 0 1 2.3 2.3v7a2.3 2.3 0 0 1-2.3 2.3H9.4L4.5 20V6.8Z"/><path d="M8.5 10h7M8.5 13h4.5"/></svg>
+  <span class="chat-badge" id="chat-badge" hidden></span>
+</button>
+<div class="chat-panel" id="chat-panel" role="dialog" aria-label="ScholarAI study-abroad mentor" hidden>
+  <div class="chat-head">
+    <span class="chat-avatar">SA</span>
+    <span class="grow"><b>ScholarAI</b><span class="chat-status" id="chat-status">checking connection…</span></span>
+    <button class="icon-btn" data-action="chat-close" aria-label="Close chat">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></svg>
+    </button>
+  </div>
+  <div class="chat-msgs" id="chat-msgs" aria-live="polite"></div>
+  <form class="chat-form" id="chat-form" autocomplete="off">
+    <label class="sr" for="chat-input">Message ScholarAI</label>
+    <textarea class="chat-input" id="chat-input" rows="1" maxlength="2000"
+              placeholder="Ask about universities, SOPs, tests, visas…"></textarea>
+    <button type="submit" class="chat-send" id="chat-send" aria-label="Send message">
+      <svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12 20 4l-4 16-4.5-6.5L4 12Z"/><path d="M11.5 13.5 20 4"/></svg>
+    </button>
+  </form>
+</div>
+<script>
+"use strict";
+/* ============================================================
+   Scholars Abroad – Ivy Profile Builder
+   Single-file app. All data lives in localStorage on this device.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   CONFIG — editable by the Scholars Abroad team.
+   Every number below is a PLACEHOLDER until calibrated against
+   published Common Data Set factors and past student outcomes.
+   ------------------------------------------------------------ */
+var CONFIG = {
+  version: 1,
+
+  entryBase: {            // starting value by achievement type
+    competition: 10,
+    research: 10,
+    project: 9,
+    club: 8,
+    internship: 8,
+    test_score: 7,
+    course: 5,
+    volunteering: 4
+  },
+  levelMult:   { school:1, state:2, national:3, international:4 },
+  resultMult:  { participation:0.5, finalist:1.0, winner:1.5 },
+  roleMult:    { member:1.0, core:1.3, founder:1.6 },
+  proofMult:   1.1,
+  recencyRecent: 1.0,     // within ~2 years
+  recencyOld:    0.85,
+
+  // Pillar weights at Grade 11–12 (shift by grade below)
+  baseWeights: { academics:0.30, tests:0.15, activities:0.25, awards:0.15, projects:0.15 },
+  // Test-score weight ramps with grade; 0 means "not expected yet"
+  testWeightByGrade: { "8":0, "9":0, "10":0.08, "11":0.15, "12":0.15, ug:0.15 },
+
+  // Grade benchmarks: raw diminishing-returns points that equal 100
+  // at Grade 12. Younger grades scale down so nobody is punished
+  // for having fewer years to build.
+  gradeScale: { "8":0.30, "9":0.45, "10":0.60, "11":0.80, "12":1.00, ug:1.15 },
+  baseBenchmarks: { activities:75, awards:90, projects:85 },
+
+  // Academics: grades 60% / course rigour 25% / trend 15%
+  acadWeights: { grades:0.60, rigour:0.25, trend:0.15 },
+  neutralRigour: 35,   // used when the student hasn't entered rigour yet
+  neutralTrend:  45,
+  // Indian board conversion table (PLACEHOLDER — counsellors: tune with real data)
+  cbseTable: [
+    { min:95, out:97 }, { min:90, out:91 }, { min:85, out:85 },
+    { min:80, out:79 }, { min:75, out:73 }, { min:70, out:67 },
+    { min:65, out:61 }, { min:0,  out:55 }
+  ],
+  // Test score → percentile-style 0–100 (PLACEHOLDER)
+  testRange: { SAT:{min:400,max:1600}, ACT:{min:1,max:36}, IB:{min:0,max:45}, AP:{min:1,max:5} },
+
+  spikeGap: 8, spikeRate: 0.6, spikeMax: 8,   // up to +8
+  themeMax: 5,                                 // up to +5
+
+  // Fit thresholds: <55→1, 55–65→2, 65–75→3, 75–85→4, 85+→5
+  fitThresholds: [55, 65, 75, 85],
+
+  // Grade → how much room is realistically left (for lever analysis)
+  gradeRoom: { "8":25, "9":25, "10":22, "11":18, "12":14, ug:16 },
+
+  /* UNIVERSITY EMPHASIS VECTORS — PLACEHOLDERS.
+     Universities do not publish these weights. Initial values are
+     guessed from each school's published Common Data Set factor
+     rankings (very important / important / considered) plus
+     counsellor experience. Keep editing as evidence comes in.
+     fit = Σ(pillar_score × emphasis) × majorFactor            */
+  universities: [
+    { id:"brown", name:"Brown", wiki:"Brown_University",
+      emphasis:{ academics:0.26, tests:0.10, activities:0.30, awards:0.14, projects:0.20 },
+      majorFactor:1.00,
+      blurb:"Known for its open curriculum — students shape their own course of study.",
+      intlNote:"Policies change each cycle. Check Brown's current testing and financial-aid pages before you plan." },
+    { id:"columbia", name:"Columbia", wiki:"Columbia_University",
+      emphasis:{ academics:0.32, tests:0.14, activities:0.24, awards:0.15, projects:0.15 },
+      majorFactor:1.04,
+      blurb:"A required core curriculum in the middle of New York City.",
+      intlNote:"Policies change each cycle. Check Columbia's current testing and financial-aid pages before you plan." },
+    { id:"cornell", name:"Cornell", wiki:"Cornell_University",
+      emphasis:{ academics:0.30, tests:0.12, activities:0.17, awards:0.13, projects:0.28 },
+      majorFactor:1.15,
+      blurb:"Admits into specific colleges, so matching your intended major matters more here.",
+      intlNote:"Policies change each cycle. Check Cornell's current testing and financial-aid pages before you plan." },
+    { id:"dartmouth", name:"Dartmouth", wiki:"Dartmouth_College",
+      emphasis:{ academics:0.28, tests:0.12, activities:0.30, awards:0.15, projects:0.15 },
+      majorFactor:1.00,
+      blurb:"A smaller liberal-arts college with a close-knit campus culture.",
+      intlNote:"Policies change each cycle. Check Dartmouth's current testing and financial-aid pages before you plan." },
+    { id:"harvard", name:"Harvard", wiki:"Harvard_University",
+      emphasis:{ academics:0.30, tests:0.12, activities:0.26, awards:0.18, projects:0.14 },
+      majorFactor:1.05,
+      blurb:"Holistic review that rewards both broad strength and a clear spike.",
+      intlNote:"Policies change each cycle. Check Harvard's current testing and financial-aid pages before you plan." },
+    { id:"penn", name:"Penn", wiki:"University_of_Pennsylvania",
+      emphasis:{ academics:0.32, tests:0.14, activities:0.26, awards:0.14, projects:0.14 },
+      majorFactor:1.08,
+      blurb:"Schools like Wharton value practical, applied work alongside academics.",
+      intlNote:"Policies change each cycle. Check Penn's current testing and financial-aid pages before you plan." },
+    { id:"princeton", name:"Princeton", wiki:"Princeton_University",
+      emphasis:{ academics:0.34, tests:0.14, activities:0.16, awards:0.16, projects:0.20 },
+      majorFactor:1.05,
+      blurb:"Places heavy weight on academic depth and sustained research.",
+      intlNote:"Policies change each cycle. Check Princeton's current testing and financial-aid pages before you plan." },
+    { id:"yale", name:"Yale", wiki:"Yale_University",
+      emphasis:{ academics:0.28, tests:0.10, activities:0.30, awards:0.17, projects:0.15 },
+      majorFactor:1.00,
+      blurb:"Residential colleges and a strong emphasis on well-rounded contribution.",
+      intlNote:"Policies change each cycle. Check Yale's current testing and financial-aid pages before you plan." }
+  ],
+
+  pillarMeta: {
+    academics:  { label:"Academics",            icon:"book" },
+    tests:      { label:"Test Scores",          icon:"clipboard" },
+    activities: { label:"Activities & Leadership", icon:"users" },
+    awards:     { label:"Awards & Competitions", icon:"trophy" },
+    projects:   { label:"Projects & Research",  icon:"flask" }
+  },
+  pillarOrder: ["academics","tests","activities","awards","projects"],
+
+  typeMeta: {
+    competition:  { label:"Competition",    pillar:"awards" },
+    club:         { label:"Club / Leadership", pillar:"activities" },
+    project:      { label:"Project",        pillar:"projects" },
+    research:     { label:"Research",       pillar:"projects" },
+    volunteering: { label:"Volunteering",   pillar:"activities" },
+    internship:   { label:"Internship",     pillar:"activities" },
+    test_score:   { label:"Test score",     pillar:"tests" },
+    course:       { label:"Course",         pillar:"academics" }
+  },
+  typeOrder: ["competition","club","project","research","volunteering","internship","test_score","course"],
+
+  grades: [
+    { id:"8",  label:"8",  sub:"Grade" },
+    { id:"9",  label:"9",  sub:"Grade" },
+    { id:"10", label:"10", sub:"Grade" },
+    { id:"11", label:"11", sub:"Grade" },
+    { id:"12", label:"12", sub:"Grade" },
+    { id:"ug", label:"UG", sub:"Student" }
+  ],
+  gradeTips: {
+    "8": "Grade 8: you have the most time of anyone here — 4+ years to build depth.",
+    "9": "Grade 9: about 3 years to build depth. Start one activity and stick with it.",
+    "10":"Grade 10: about 2 years to build depth. Depth beats a long list.",
+    "11":"Grade 11: the big year. Test prep and one serious project matter most.",
+    "12":"Grade 12: application year. Log everything — you've already done the work.",
+    ug: "Undergraduate: building for postgrad or transfer. Research and results matter most."
+  },
+  majors: ["Computer Science","Engineering","Economics","Biology / Pre-med","Humanities","Undecided","Other"],
+
+  /* LIVE DATES — real test-day and application calendars.
+     SAT/ACT rows verified 2 Oct 2026 against the official sources
+     linked in Settings (sat.org / act.org). Update them each season;
+     the app computes every countdown from today's date at runtime. */
+  dates: {
+    verified: "2026-10-02",
+    sources: {
+      sat: "https://satsuite.collegeboard.org/sat/dates-deadlines",
+      act: "https://www.act.org/content/act/en/products-and-services/the-act/registration/test-dates.html",
+      commonapp: "https://www.commonapp.org/"
+    },
+    sat: [
+      { test:"2026-08-22", reg:"2026-08-07", late:"2026-08-11" },
+      { test:"2026-09-12", reg:"2026-08-28", late:"2026-09-01" },
+      { test:"2026-10-03", reg:"2026-09-18", late:"2026-09-22" },
+      { test:"2026-11-07", reg:"2026-10-23", late:"2026-10-27" },
+      { test:"2026-12-05", reg:"2026-11-20", late:"2026-11-24" },
+      { test:"2027-03-06", reg:"2027-02-19", late:"2027-02-23" },
+      { test:"2027-05-01", reg:"2027-04-16", late:"2027-04-20" },
+      { test:"2027-06-05", reg:"2027-05-21", late:"2027-05-25" }
+    ],
+    act: [
+      { test:"2026-09-19", reg:"2026-08-14", late:"2026-09-01" },
+      { test:"2026-10-17", reg:"2026-09-11", late:"2026-09-29" },
+      { test:"2026-12-12", reg:"2026-11-06", late:"2026-11-29" },
+      { test:"2027-02-27", reg:"2027-01-22", late:"2027-02-09" },
+      { test:"2027-04-10", reg:"2027-03-05", late:"2027-03-23" },
+      { test:"2027-06-12", reg:"2027-05-07", late:"2027-05-25" },
+      { test:"2027-07-10", reg:"2027-06-04", late:"2027-06-22" }
+    ],
+    // month is 1-based; these repeat every year from today's date
+    milestones: [
+      { id:"commonapp", label:"Common App opens", month:8, day:1,
+        note:"Start your account and essay drafts early." },
+      { id:"early", label:"Early Decision / Action deadline", month:11, day:1,
+        note:"All eight Ivies close their early rounds on Nov 1." },
+      { id:"regular", label:"Regular Decision deadline", month:1, day:2,
+        note:"Most Ivies use Jan 1–2. Confirm each school's exact date." }
+    ]
+  },
+
+  statusLabels: [
+    { min:0,  label:"Getting started" },
+    { min:40, label:"Building well" },
+    { min:60, label:"Strong" },
+    { min:80, label:"Exceptional" }
+  ]
+};
+
+/* ------------------------------------------------------------
+   STORAGE — everything wrapped in try/catch. If localStorage is
+   blocked the app still runs in memory for this session.
+   ------------------------------------------------------------ */
+var STORAGE_KEY = "scholarsAbroad.v1";
+var memoryStore = {};
+var storageOK = true;
+
+function storeGet(key){
+  try { return window.localStorage.getItem(key); }
+  catch (e) { storageOK = false; return memoryStore[key] || null; }
+}
+function storeSet(key, val){
+  try { window.localStorage.setItem(key, val); }
+  catch (e) { storageOK = false; memoryStore[key] = val; }
+}
+function storeDel(key){
+  try { window.localStorage.removeItem(key); }
+  catch (e) { delete memoryStore[key]; }
+}
+
+function defaultState(){
+  return {
+    onboarded: false,
+    consent: false,
+    student: {
+      name: "", grade: "10", major: "",
+      scale: "percentage", current: "", previous: "",
+      sat: "", act: "", ib: "", ap: "",
+      rigourTaken: "", rigourOffered: ""
+    },
+    academics: { current:"", scale:"percentage", previous:"", rigourTaken:"", rigourOffered:"" },
+    entries: [],
+    roadmapDone: {},
+    deferredMove: null,
+    history: [],
+    draft: null,
+    obStep: 1,
+    seenDemoHint: false
+  };
+}
+
+var state = defaultState();
+
+function loadState(){
+  var raw = storeGet(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    var parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object"){
+      var base = defaultState();
+      for (var k in base) if (!(k in parsed)) parsed[k] = base[k];
+      parsed.student = Object.assign(base.student, parsed.student || {});
+      parsed.academics = Object.assign(base.academics, parsed.academics || {});
+      if (!Array.isArray(parsed.entries)) parsed.entries = [];
+      if (typeof parsed.roadmapDone !== "object" || !parsed.roadmapDone) parsed.roadmapDone = {};
+      if (!Array.isArray(parsed.history)) parsed.history = [];
+      state = parsed;
+    }
+  } catch (e) { state = defaultState(); }
+}
+
+function saveState(){
+  try { storeSet(STORAGE_KEY, JSON.stringify(state)); }
+  catch (e) { /* quota or serialization — keep running in memory */ }
+}
+
+function uid(){ return "e" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+/* ------------------------------------------------------------
+   LAYER 1 — score one achievement entry
+   entry_points = base × level × result × role × commitment × recency × proof
+   ------------------------------------------------------------ */
+function commitmentFactor(hoursPerWeek, weeksPerYear){
+  var annual = (Number(hoursPerWeek) || 0) * (Number(weeksPerYear) || 0);
+  if (annual <= 0) return 0.5;
+  return Math.min(1.5, 0.5 + Math.log10(1 + annual) / 3);
+}
+
+function entryRecency(entry){
+  var d = entry.endDate || entry.startDate;
+  if (!d) return CONFIG.recencyRecent;
+  var t = new Date(d).getTime();
+  if (isNaN(t)) return CONFIG.recencyRecent;
+  var twoYears = 2 * 365 * 24 * 3600 * 1000;
+  return (Date.now() - t) <= twoYears ? CONFIG.recencyRecent : CONFIG.recencyOld;
+}
+
+/* Types where the form actually asks "how did it go?" — result only
+   multiplies these, so a club or job can never be silently penalised. */
+var RESULT_TYPES = ["competition", "research", "project"];
+
+function entryPoints(entry){
+  var base = CONFIG.entryBase[entry.type] || 6;
+  var level = CONFIG.levelMult[entry.level] || 1;
+  var result = RESULT_TYPES.indexOf(entry.type) !== -1
+    ? (CONFIG.resultMult[entry.result] || 1) : 1;
+  var role = CONFIG.roleMult[entry.role] || 1;
+  var commit = commitmentFactor(entry.hoursPerWeek, entry.weeksPerYear);
+  var recency = entryRecency(entry);
+  var proof = entry.proofFile ? CONFIG.proofMult : 1;
+  return base * level * result * role * commit * recency * proof;
+}
+
+function entriesForPillar(pillar, list){
+  list = list || state.entries;
+  if (pillar === "academics" || pillar === "tests"){
+    return list.filter(function(e){
+      var m = CONFIG.typeMeta[e.type];
+      return m && m.pillar === pillar;
+    });
+  }
+  return list.filter(function(e){
+    var m = CONFIG.typeMeta[e.type];
+    return m && m.pillar === pillar;
+  });
+}
+
+/* Diminishing returns: best entry counts fully, each next 60% of the one before. */
+function diminishingScore(list, benchmark){
+  var pts = list.map(entryPoints).sort(function(a,b){ return b - a; });
+  var raw = 0;
+  for (var i = 0; i < pts.length; i++) raw += pts[i] * Math.pow(0.6, i);
+  if (benchmark <= 0) return 0;
+  return Math.min(100, (raw / benchmark) * 100);
+}
+
+/* ------------------------------------------------------------
+   LAYER 2 — pillar scores
+   ------------------------------------------------------------ */
+function normaliseGrade(value, scale){
+  var v = parseFloat(value);
+  if (isNaN(v)) return null;
+  if (scale === "gpa4") return Math.max(0, Math.min(100, (v / 4) * 100));
+  if (scale === "ib")   return Math.max(0, Math.min(100, (v / 45) * 100));
+  if (scale === "cbse" || scale === "icse"){
+    for (var i = 0; i < CONFIG.cbseTable.length; i++){
+      if (v >= CONFIG.cbseTable[i].min) return CONFIG.cbseTable[i].out;
+    }
+    return 55;
+  }
+  return Math.max(0, Math.min(100, v)); // percentage
+}
+
+function academicsScore(listOverride){
+  var a = state.academics || {};
+  var grades = normaliseGrade(a.current, a.scale || "percentage");
+  if (grades === null) return null;
+  var w = CONFIG.acadWeights;
+
+  var rigour = CONFIG.neutralRigour;
+  var taken = parseFloat(a.rigourTaken), offered = parseFloat(a.rigourOffered);
+  if (!isNaN(taken) && !isNaN(offered) && offered > 0){
+    rigour = Math.max(0, Math.min(100, (taken / offered) * 100));
+  }
+  // Logged courses count toward rigour too — take whichever signal is stronger
+  var courseList = entriesForPillar("academics", listOverride || state.entries);
+  if (courseList.length){
+    var scale = CONFIG.gradeScale[state.student.grade] || 0.6;
+    var courseScore = diminishingScore(courseList, 12 * scale);
+    if (courseScore > rigour) rigour = courseScore;
+  }
+
+  var trend = CONFIG.neutralTrend;
+  var prev = parseFloat(a.previous);
+  if (!isNaN(prev) && a.scale){
+    var prevN = normaliseGrade(prev, a.scale);
+    if (prevN !== null){
+      trend = Math.max(0, Math.min(100, 50 + (grades - prevN) * 5));
+    }
+  }
+
+  return grades * w.grades + rigour * w.rigour + trend * w.trend;
+}
+
+function testPercentile(entry){
+  var testName = (entry.testName || "SAT").toUpperCase();
+  var score = parseFloat(entry.scoreValue);
+  if (isNaN(score)) return null;
+  var range = CONFIG.testRange[testName] || CONFIG.testRange.SAT;
+  return Math.max(0, Math.min(100, ((score - range.min) / (range.max - range.min)) * 100));
+}
+
+/* Tests pillar: superscore across attempts; null = "not yet". */
+function testsScore(){
+  var list = entriesForPillar("tests");
+  var best = null;
+  list.forEach(function(e){
+    var p = testPercentile(e);
+    if (p !== null && (best === null || p > best)) best = p;
+  });
+  return best;
+}
+
+function benchmarkFor(pillar){
+  var scale = CONFIG.gradeScale[state.student.grade] || 0.6;
+  var base = CONFIG.baseBenchmarks[pillar];
+  return base ? base * scale : null;
+}
+
+function computePillars(){
+  var out = {};
+  out.academics = academicsScore();
+  out.tests = testsScore();
+  out.activities = diminishingScore(entriesForPillar("activities"), benchmarkFor("activities"));
+  out.awards = diminishingScore(entriesForPillar("awards"), benchmarkFor("awards"));
+  out.projects = diminishingScore(entriesForPillar("projects"), benchmarkFor("projects"));
+  return out;
+}
+
+/* ------------------------------------------------------------
+   LAYER 3–4 — weights by grade, then overall strength
+   strength = Σ(score × weight) + spike bonus + theme bonus
+   ------------------------------------------------------------ */
+function pillarWeights(){
+  var grade = state.student.grade;
+  var w = {
+    academics: CONFIG.baseWeights.academics,
+    activities: CONFIG.baseWeights.activities,
+    awards: CONFIG.baseWeights.awards,
+    projects: CONFIG.baseWeights.projects,
+    tests: CONFIG.testWeightByGrade[grade] != null ? CONFIG.testWeightByGrade[grade] : 0.15
+  };
+  // No test data yet → spread that weight across the other pillars
+  if (testsScore() === null) w.tests = 0;
+  var sum = w.academics + w.activities + w.awards + w.projects + w.tests;
+  if (sum <= 0) return CONFIG.baseWeights;
+  var out = {};
+  for (var k in w) out[k] = w[k] / sum;
+  return out;
+}
+
+function themeBonus(pillarMap){
+  var themed = 0, total = 0;
+  state.entries.forEach(function(e){
+    var m = CONFIG.typeMeta[e.type];
+    if (!m) return;
+    if (m.pillar === "tests" || m.pillar === "academics") return;
+    total++;
+    if (e.themed) themed++;
+  });
+  if (total < 2) return 0;
+  var share = themed / total;
+  if (share < 0.6) return 0;
+  return CONFIG.themeMax * Math.min(1, (share - 0.6) / 0.4 + 0.55);
+}
+
+function statusLabel(score){
+  var label = CONFIG.statusLabels[0].label;
+  CONFIG.statusLabels.forEach(function(s){ if (score >= s.min) label = s.label; });
+  return label;
+}
+
+function computeStrength(){
+  var pillars = computePillars();
+  var weights = pillarWeights();
+  var scored = [], total = 0, used = 0;
+  CONFIG.pillarOrder.forEach(function(p){
+    var s = pillars[p];
+    if (s === null || s === undefined) return;
+    total += s * weights[p];
+    used += weights[p];
+    scored.push(s);
+  });
+  if (used > 0 && used < 1) total = total / used; // safety renormalise
+
+  // Spike bonus only counts when at least two pillars are genuinely built —
+  // a lone non-zero pillar is an empty profile, not a spike.
+  var spike = 0;
+  var built = scored.filter(function(s){ return s > 5; });
+  if (built.length >= 2){
+    var best = Math.max.apply(null, built);
+    var avg = built.reduce(function(a,b){ return a + b; }, 0) / built.length;
+    spike = Math.max(0, Math.min(CONFIG.spikeMax, (best - avg - CONFIG.spikeGap) * CONFIG.spikeRate));
+  }
+  var theme = themeBonus(pillars);
+  var score = Math.max(0, Math.min(100, total + spike + theme));
+
+  return {
+    score: Math.round(score),
+    pillars: pillars,
+    weights: weights,
+    spike: Math.round(spike),
+    theme: Math.round(theme),
+    label: statusLabel(Math.round(score))
+  };
+}
+
+/* ------------------------------------------------------------
+   LAYER 5–6 — per-university fit, bands, ranking
+   fit = Σ(pillar × emphasis) × majorFactor  → 1..5
+   fit 4–5 = Reach, 1–3 = High reach. Never "Likely"/"Safety".
+   ------------------------------------------------------------ */
+function emphasisFor(uni, pillars){
+  // If a pillar is "not yet" (tests), spread its emphasis over the rest
+  var eff = {}, spread = 0, kept = 0;
+  CONFIG.pillarOrder.forEach(function(p){
+    var e = uni.emphasis[p] || 0;
+    var has = pillars[p] !== null && pillars[p] !== undefined;
+    if (has){ eff[p] = e; kept += e; }
+    else { eff[p] = 0; spread += e; }
+  });
+  if (kept <= 0) return eff;
+  var give = spread / kept;
+  CONFIG.pillarOrder.forEach(function(p){ if (eff[p] > 0) eff[p] = eff[p] * (1 + give); });
+  return eff;
+}
+
+function fitRaw(pillars, uni){
+  var eff = emphasisFor(uni, pillars);
+  var raw = 0;
+  CONFIG.pillarOrder.forEach(function(p){
+    var s = pillars[p];
+    if (s === null || s === undefined) return;
+    raw += s * eff[p];
+  });
+  return raw * (uni.majorFactor || 1);
+}
+
+function fitToBandNumber(raw){
+  var t = CONFIG.fitThresholds;
+  if (raw < t[0]) return 1;
+  if (raw < t[1]) return 2;
+  if (raw < t[2]) return 3;
+  if (raw < t[3]) return 4;
+  return 5;
+}
+
+function bandFor(fit){
+  return fit >= 4 ? "Reach" : "High reach";
+}
+
+function bandChip(fit){
+  var band = bandFor(fit);
+  var cls = band === "Reach" ? "chip-reach" : "chip-high";
+  return '<span class="chip ' + cls + '">' + band + "</span>";
+}
+
+function biggestLever(pillars, uni){
+  var eff = emphasisFor(uni, pillars);
+  var room = CONFIG.gradeRoom[state.student.grade] || 20;
+  var best = null;
+  CONFIG.pillarOrder.forEach(function(p){
+    var s = pillars[p];
+    if (s === null || s === undefined) return;
+    var gain = Math.min(100 - s, room);
+    if (gain <= 0) return;
+    var delta = (eff[p] || 0) * gain * (uni.majorFactor || 1);
+    if (!best || delta > best.delta) best = { pillar: p, delta: delta, gain: gain };
+  });
+  return best;
+}
+
+function computeUniversities(){
+  var profile = computeStrength();
+  var rows = CONFIG.universities.map(function(uni){
+    var raw = fitRaw(profile.pillars, uni);
+    var fit = fitToBandNumber(raw);
+    var lever = biggestLever(profile.pillars, uni);
+    return {
+      id: uni.id, uni: uni, name: uni.name,
+      raw: Math.round(raw * 10) / 10,
+      fit: fit, band: bandFor(fit),
+      lever: lever ? lever.pillar : null,
+      leverGain: lever ? lever.gain : 0
+    };
+  });
+  rows.sort(function(a, b){
+    if (b.fit !== a.fit) return b.fit - a.fit;
+    if (b.raw !== a.raw) return b.raw - a.raw;
+    return (b.leverGain || 0) - (a.leverGain || 0);
+  });
+  rows.forEach(function(r, i){ r.rank = i + 1; });
+  return rows;
+}
+/* ------------------------------------------------------------
+   LAYER 8 — roadmap template library (rules, readable & editable)
+   Indexed by grade × weakest pillars × intended major.
+   points = estimated gain in profile strength, not an automatic bonus.
+   ------------------------------------------------------------ */
+var ROADMAP_TASKS = [
+  // ---- This term ----
+  { id:"log-awards", title:"Log every award or certificate you already have",
+    pillar:"awards", effort:"15 min", hours:0.25, points:6,
+    periods:["this-term"], grades:["8","9","10","11","12","ug"],
+    action:{ hash:"#/add", type:"competition" } },
+  { id:"update-grades", title:"Add your latest grades so Academics is up to date",
+    pillar:"academics", effort:"10 min", hours:0.2, points:4,
+    periods:["this-term"], grades:["8","9","10","11","12","ug"],
+    action:{ hash:"#/profile/academics" } },
+  { id:"practice-test", title:"Take one full practice SAT or ACT",
+    pillar:"tests", effort:"3 hrs", hours:3, points:5,
+    periods:["this-term"], grades:["10","11","12","ug"],
+    action:{ hash:"#/add", type:"test_score" } },
+  { id:"deepen-club", title:"Take a bigger role in one activity you already do",
+    pillar:"activities", effort:"2 hrs/week", hours:6, points:7,
+    periods:["this-term"], grades:["8","9","10","11","12","ug"], weakOnly:true,
+    action:{ hash:"#/add", type:"club" } },
+  { id:"pick-competition", title:"Pick one competition above school level and register",
+    pillar:"awards", effort:"30 min", hours:0.5, points:7,
+    periods:["this-term"], grades:["8","9","10","11","12"], weakOnly:true,
+    action:{ hash:"#/add", type:"competition" } },
+  { id:"small-project", title:"Start one small project you can finish this term",
+    pillar:"projects", effort:"6–8 hrs total", hours:8, points:8,
+    periods:["this-term"], grades:["8","9","10","11","12","ug"], weakOnly:true,
+    action:{ hash:"#/add", type:"project" } },
+  { id:"log-volunteering", title:"Log your volunteering hours — they count too",
+    pillar:"activities", effort:"10 min", hours:0.2, points:4,
+    periods:["this-term"], grades:["8","9","10","11","12"],
+    action:{ hash:"#/add", type:"volunteering" } },
+
+  // ---- Summer ----
+  { id:"summer-programme", title:"Apply to a summer programme, internship or job shadow",
+    pillar:"activities", effort:"3–4 wks", hours:30, points:10,
+    periods:["summer"], grades:["9","10","11","12","ug"],
+    action:{ hash:"#/add", type:"internship" } },
+  { id:"ship-project", title:"Ship one project end-to-end and put it online",
+    pillar:"projects", effort:"30–40 hrs", hours:35, points:12,
+    periods:["summer"], grades:["9","10","11","12","ug"],
+    action:{ hash:"#/add", type:"project" } },
+  { id:"sat-prep", title:"Do 6 focused weeks of SAT/ACT prep",
+    pillar:"tests", effort:"40 hrs", hours:40, points:9,
+    periods:["summer"], grades:["10","11","12"],
+    action:{ hash:"#/add", type:"test_score" } },
+  { id:"summer-volunteer", title:"Volunteer somewhere for 4 weeks in a row",
+    pillar:"activities", effort:"4 wks", hours:24, points:6,
+    periods:["summer"], grades:["8","9","10","11","12"],
+    action:{ hash:"#/add", type:"volunteering" } },
+  { id:"research-summer", title:"Shadow a researcher or assist on a small study in your subject",
+    pillar:"projects", effort:"25 hrs", hours:25, points:11,
+    periods:["summer"], grades:["10","11","12","ug"],
+    action:{ hash:"#/add", type:"research" } },
+
+  // ---- Next grade ----
+  { id:"hardest-courses", title:"Take the hardest courses your school actually offers",
+    pillar:"academics", effort:"Year-long", hours:60, points:10,
+    periods:["next-grade"], grades:["8","9","10","11"],
+    action:{ hash:"#/profile/academics" } },
+  { id:"lead-role", title:"Run for a leadership position in your main activity",
+    pillar:"activities", effort:"Year-long", hours:40, points:9,
+    periods:["next-grade"], grades:["9","10","11"], weakOnly:true,
+    action:{ hash:"#/add", type:"club" } },
+  { id:"national-comp", title:"Enter one national-level competition",
+    pillar:"awards", effort:"Varies", hours:15, points:11,
+    periods:["next-grade"], grades:["9","10","11","12"],
+    action:{ hash:"#/add", type:"competition" } },
+  { id:"long-project", title:"Start one longer project or study you can carry for 6+ months",
+    pillar:"projects", effort:"Ongoing", hours:50, points:12,
+    periods:["next-grade"], grades:["10","11","12","ug"],
+    action:{ hash:"#/add", type:"project" } },
+
+  // ---- Application year ----
+  { id:"sat-real", title:"Sit the SAT/ACT for real — book the test date now",
+    pillar:"tests", effort:"4 hrs + test day", hours:6, points:10,
+    periods:["application-year"], grades:["11","12","ug"],
+    action:{ hash:"#/add", type:"test_score" } },
+  { id:"personal-statement", title:"Draft your personal statement (three rounds)",
+    pillar:"essays", effort:"20 hrs", hours:20, points:0, unscored:true,
+    periods:["application-year"], grades:["11","12","ug"],
+    action:{ hash:"#/roadmap" } },
+  { id:"recommendations", title:"Ask two teachers for recommendations — early, not last minute",
+    pillar:"planning", effort:"2 hrs", hours:2, points:0, unscored:true,
+    periods:["application-year"], grades:["11","12"],
+    action:{ hash:"#/roadmap" } },
+  { id:"balanced-list", title:"Build a balanced list of 8–10 colleges",
+    pillar:"planning", effort:"3 hrs", hours:3, points:0, unscored:true,
+    periods:["application-year"], grades:["11","12","ug"],
+    action:{ hash:"#/chances" } },
+  { id:"policy-check", title:"Check each school's testing and financial-aid policy for international applicants",
+    pillar:"planning", effort:"1 hr", hours:1, points:0, unscored:true,
+    periods:["application-year"], grades:["11","12","ug"],
+    action:{ hash:"#/chances" } }
+];
+
+var PERIODS = [
+  { id:"this-term", label:"This term" },
+  { id:"summer", label:"Summer" },
+  { id:"next-grade", label:"Next grade" },
+  { id:"application-year", label:"Application year" }
+];
+
+function periodUrgency(periodId){
+  if (periodId === "this-term") return 1.5;
+  if (periodId === "summer") return 1.2;
+  if (periodId === "next-grade") return 1.0;
+  return 0.9;
+}
+
+function generateRoadmap(){
+  var grade = state.student.grade;
+  var pillars = computePillars();
+  var weights = pillarWeights();
+
+  var weakness = [];
+  CONFIG.pillarOrder.forEach(function(p){
+    if (p === "tests" && pillars[p] === null) return;
+    var s = pillars[p];
+    if (s === null || s === undefined) return;
+    if (s < 50) weakness.push(p);
+  });
+  weakness.sort(function(a, b){ return pillars[a] - pillars[b]; });
+
+  var byPeriod = {};
+  PERIODS.forEach(function(p){ byPeriod[p.id] = []; });
+
+  ROADMAP_TASKS.forEach(function(t){
+    if (t.grades.indexOf(grade) === -1) return;
+    if (t.weakOnly && weakness.indexOf(t.pillar) === -1) return;
+    var task = Object.assign({}, t);
+    task.done = !!state.roadmapDone[t.id];
+    task.priority = (t.unscored || t.points <= 0)
+      ? 0
+      : (t.points / Math.max(t.hours, 0.1)) * periodUrgency(t.periods[0]);
+    t.periods.forEach(function(p){ if (byPeriod[p]) byPeriod[p].push(task); });
+  });
+
+  PERIODS.forEach(function(p){
+    byPeriod[p.id].sort(function(a, b){ return b.priority - a.priority; });
+  });
+  return { byPeriod: byPeriod, weakness: weakness, pillars: pillars, weights: weights };
+}
+
+function nextBestMove(){
+  var rm = generateRoadmap();
+  var deferred = state.deferredMove;
+  var now = Date.now();
+  var best = null;
+  PERIODS.forEach(function(p){
+    rm.byPeriod[p.id].forEach(function(t){
+      if (t.done || t.points <= 0) return;
+      if (deferred && deferred.id === t.id && deferred.until > now) return;
+      if (!best || t.priority > best.priority) best = t;
+    });
+  });
+  return best;
+}
+
+/* ------------------------------------------------------------
+   LIVE DATES — countdown math. All computed from the real clock,
+   so "in 12 days" is always true whenever the page is open.
+   ------------------------------------------------------------ */
+function parseLocalDate(iso){
+  var p = String(iso).split("-");
+  return new Date(+p[0], +p[1] - 1, +p[2]);
+}
+function startOfToday(){
+  var n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+function daysUntil(iso){
+  return Math.round((parseLocalDate(iso) - startOfToday()) / 86400000);
+}
+function isoOf(d){
+  var m = d.getMonth() + 1, day = d.getDate();
+  return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (day < 10 ? "0" : "") + day;
+}
+function nextOccurrence(month1, day){
+  var t = startOfToday();
+  var d = new Date(t.getFullYear(), month1 - 1, day);
+  if (d < t) d = new Date(t.getFullYear() + 1, month1 - 1, day);
+  return d;
+}
+function fmtDate(iso){
+  return parseLocalDate(iso).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+}
+function countdownText(iso){
+  var d = daysUntil(iso);
+  if (d > 1) return "in " + d + " days";
+  if (d === 1) return "tomorrow";
+  if (d === 0) return "today";
+  if (d === -1) return "yesterday";
+  return Math.abs(d) + " days ago";
+}
+/* Every date worth showing, sorted soonest-first, past dates dropped. */
+function upcomingDates(limit, opts){
+  opts = opts || {};
+  var items = [];
+  CONFIG.dates.milestones.forEach(function(m){
+    var iso = isoOf(nextOccurrence(m.month, m.day));
+    items.push({ kind:"milestone", id:m.id, label:m.label, date:iso, note:m.note });
+  });
+  if (!opts.milestonesOnly){
+    [["sat","SAT", CONFIG.dates.sat], ["act","ACT", CONFIG.dates.act]].forEach(function(row){
+      var key = row[0], name = row[1], list = row[2];
+      list.forEach(function(t){
+        if (daysUntil(t.reg) >= 0){
+          items.push({ kind:key + "-reg", label:name + " registration deadline", date:t.reg,
+            note:"for the " + fmtDate(t.test) + " test" });
+        }
+        if (daysUntil(t.test) >= 0){
+          items.push({ kind:key + "-test", label:name + " test day", date:t.test,
+            note: daysUntil(t.reg) >= 0 ? "Register by " + fmtDate(t.reg) : "Registration has closed" });
+        }
+      });
+    });
+  }
+  items.sort(function(a, b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  return typeof limit === "number" ? items.slice(0, limit) : items;
+}
+
+/* ------------------------------------------------------------
+   REAL-TIME PROJECTION — compute what the score / fit WOULD be
+   with a set of entries, without saving anything. Used by the
+   add/edit impact box and the onboarding preview.
+   ------------------------------------------------------------ */
+function withState(entries, academics, fn){
+  var prevE = state.entries, prevA = state.academics;
+  state.entries = entries;
+  if (academics) state.academics = academics;
+  try { return fn(); } finally {
+    state.entries = prevE;
+    if (academics) state.academics = prevA;
+  }
+}
+function draftProjection(){
+  var d = state.draft;
+  if (!d || !d.type) return null;
+  var list = state.entries.filter(function(e){ return d.id === null || e.id !== d.id; });
+  list = list.concat([d]);
+  var before = computeStrength();
+  var after = withState(list, null, function(){
+    return { strength: computeStrength(), unis: computeUniversities() };
+  });
+  var beforeUnis = computeUniversities();
+  var fits = beforeUnis.slice(0, 3).map(function(u, i){
+    var a = after.unis.filter(function(x){ return x.id === u.id; })[0];
+    return { name: u.name, before: u.fit, after: a ? a.fit : u.fit, rank: i + 1 };
+  });
+  return { before: before.score, after: after.strength.score, fits: fits };
+}
+/* Onboarding step-3 preview: what the profile would score with the
+   academics + test scores typed so far. */
+function onboardingProjection(){
+  var s = state.student;
+  var acad = {
+    current: s.current || "", scale: s.scale || "percentage",
+    previous: s.previous || "", rigourTaken: s.rigourTaken || "", rigourOffered: s.rigourOffered || ""
+  };
+  var sim = state.entries.slice();
+  [["sat","SAT"],["act","ACT"],["ib","IB"],["ap","AP"]].forEach(function(pair){
+    var val = (s[pair[0]] || "").trim();
+    if (!val) return;
+    if (sim.some(function(e){ return e.type === "test_score" && e.testName === pair[1]; })) return;
+    sim.push({ id:"sim-" + pair[1], type:"test_score", testName:pair[1], scoreValue:val,
+      level:"school", result:"", role:"member", hoursPerWeek:"", weeksPerYear:"",
+      startDate:"", endDate:"", description:"", proofFile:"", themed:false, createdAt:Date.now() });
+  });
+  return withState(sim, acad, function(){ return computeStrength(); });
+}
+
+/* ------------------------------------------------------------
+   DEMO STUDENT — "Aarav, Grade 10"
+   ------------------------------------------------------------ */
+function demoState(){
+  var s = defaultState();
+  s.onboarded = true;
+  s.consent = true;
+  s.student = {
+    name:"Aarav", grade:"10", major:"Computer Science",
+    scale:"cbse", current:"92", previous:"88",
+    sat:"", act:"", ib:"", ap:"",
+    rigourTaken:"3", rigourOffered:"5"
+  };
+  s.academics = {
+    current:"92", scale:"cbse", previous:"88",
+    rigourTaken:"3", rigourOffered:"5"
+  };
+
+  function E(o){ o.id = uid(); o.createdAt = Date.now(); return o; }
+  s.entries = [
+    E({ type:"competition", name:"State Math Olympiad", level:"state", result:"winner",
+        role:"member", hoursPerWeek:3, weeksPerYear:10, startDate:"2025-08-01", endDate:"2025-11-15",
+        description:"Qualified through the school round and finished in the top 10 at state level.",
+        proofFile:"state-olympiad-certificate.pdf", themed:false }),
+    E({ type:"competition", name:"Inter-School Coding Contest", level:"school", result:"winner",
+        role:"member", hoursPerWeek:2, weeksPerYear:3, startDate:"2026-01-10", endDate:"2026-01-12",
+        description:"Built a working chatbot in 6 hours and took first place among 24 teams.",
+        proofFile:"coding-contest-win.jpg", themed:true }),
+    E({ type:"club", name:"Robotics Club — Founder & President", level:"school", result:"participation",
+        role:"founder", hoursPerWeek:3, weeksPerYear:30, startDate:"2025-04-01", endDate:"",
+        description:"Started the club with 8 members; we now enter two external competitions a year.",
+        proofFile:"", themed:true }),
+    E({ type:"volunteering", name:"Weekend Math Tutoring", level:"school", result:"participation",
+        role:"core", hoursPerWeek:2, weeksPerYear:12, startDate:"2025-06-01", endDate:"2026-03-01",
+        description:"Teach grade 6–7 students every Saturday at the community centre.",
+        proofFile:"", themed:false }),
+    E({ type:"internship", name:"Web Developer Intern — local business", level:"school", result:"participation",
+        role:"core", hoursPerWeek:6, weeksPerYear:6, startDate:"2025-05-05", endDate:"2025-06-13",
+        description:"Rebuilt their booking page; page load time dropped from 6s to 1.8s.",
+        proofFile:"internship-letter.pdf", themed:true }),
+    E({ type:"project", name:"Crop Price Predictor (ML)", level:"school", result:"finalist",
+        role:"member", hoursPerWeek:5, weeksPerYear:12, startDate:"2025-07-01", endDate:"2025-10-01",
+        description:"Trained a model on 5 years of mandi prices; won 2nd at the district science fair.",
+        proofFile:"github-crop-predictor", themed:true }),
+    E({ type:"research", name:"Traffic Flow Study Near My School", level:"school", result:"finalist",
+        role:"core", hoursPerWeek:3, weeksPerYear:8, startDate:"2026-01-05", endDate:"2026-03-01",
+        description:"Counted and analysed peak-hour traffic for 3 weeks; wrote up findings for the school journal.",
+        proofFile:"", themed:true })
+  ];
+  s.roadmapDone = { "log-awards": Date.now(), "update-grades": Date.now() };
+  s.obStep = 1;
+  s.seenDemoHint = true;
+
+  // Seed a score history so "+4 this month" has something to show
+  var live = state;
+  state = s;
+  var current = computeStrength().score;
+  state = live;
+  s.history = [
+    { t: Date.now() - 30 * 24 * 3600 * 1000, score: Math.max(0, current - 4) },
+    { t: Date.now(), score: current }
+  ];
+  return s;
+}
+
+function loadDemo(){
+  state = demoState();
+  saveState();
+}
+
+/* ------------------------------------------------------------
+   Small helpers
+   ------------------------------------------------------------ */
+function esc(s){
+  return String(s === null || s === undefined ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+var ICONS = {
+  home:'<path d="M3.5 10.6 12 3.5l8.5 7.1"/><path d="M5.8 9.4V20a1 1 0 0 0 1 1h3.4v-5.4h3.6V21h3.4a1 1 0 0 0 1-1V9.4"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>',
+  target:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+  map:'<path d="M9 4.5 3.5 7v13L9 17.5l6 2.5 5.5-2.5v-13L15 7 9 4.5Z"/><path d="M9 4.5v13M15 7v13"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.6a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/>',
+  plus:'<path d="M12 5.5v13M5.5 12h13"/>',
+  chev:'<path d="m9.5 5.5 6.5 6.5-6.5 6.5"/>',
+  back:'<path d="M19.5 12h-15M10.5 5.5 4 12l6.5 6.5"/>',
+  pencil:'<path d="M4.5 19.5h4L19 9a2.1 2.1 0 0 0-3-3L5.5 16.5v3Z"/><path d="m14.5 7.5 2.9 2.9"/>',
+  trash:'<path d="M4.5 7h15M9.5 7V5.2a1.2 1.2 0 0 1 1.2-1.2h2.6a1.2 1.2 0 0 1 1.2 1.2V7M6.8 7l.9 12.1a1.5 1.5 0 0 0 1.5 1.4h5.6a1.5 1.5 0 0 0 1.5-1.4L17.2 7M10 11v5.5M14 11v5.5"/>',
+  check:'<path d="m5.5 12.5 4.5 4.5L18.5 7"/>',
+  book:'<path d="M5 5.2A1.7 1.7 0 0 1 6.7 3.5H19v14.8H6.7A1.7 1.7 0 0 0 5 20V5.2Z"/><path d="M5 20a1.7 1.7 0 0 0 1.7 1.5H19v-3.2"/>',
+  clipboard:'<path d="M9 4.5h6v3H9z"/><path d="M9 6H6.7A1.7 1.7 0 0 0 5 7.7v11.6A1.7 1.7 0 0 0 6.7 21h10.6a1.7 1.7 0 0 0 1.7-1.7V7.7A1.7 1.7 0 0 0 17.3 6H15"/><path d="M8.5 12h7M8.5 16h4.5"/>',
+  users:'<circle cx="9.5" cy="8" r="3.5"/><path d="M3.5 19.5a6 6 0 0 1 12 0"/><path d="M16 4.9a3.5 3.5 0 0 1 0 6.2M17.5 14.1a6 6 0 0 1 3 5.4"/>',
+  trophy:'<path d="M8 4.5h8v4.2a4 4 0 0 1-8 0V4.5Z"/><path d="M8 6H5v1.2a3.5 3.5 0 0 0 3.1 3.5M16 6h3v1.2a3.5 3.5 0 0 1-3.1 3.5M12 12.7v3.3M9 19.5h6M10 16h4v3.5h-4z"/>',
+  flask:'<path d="M10 3.5v6L4.8 18.4A1.8 1.8 0 0 0 6.4 21h11.2a1.8 1.8 0 0 0 1.6-2.6L14 9.5v-6"/><path d="M9 3.5h6M7.6 14h8.8"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/>',
+  star:'<path d="m12 4 2.5 5 5.5.8-4 3.9 1 5.5L12 16.6l-5 2.6 1-5.5-4-3.9L9.5 9 12 4Z"/>',
+  download:'<path d="M12 4v10M8 10.5l4 4 4-4M4.5 20h15"/>',
+  refresh:'<path d="M4.7 12a7.3 7.3 0 0 1 12.5-5.1L19.5 9M19.5 4.8V9h-4.2M19.3 12a7.3 7.3 0 0 1-12.5 5.1L4.5 15M4.5 19.2V15h4.2"/>',
+  chat:'<path d="M4.5 6.8A2.3 2.3 0 0 1 6.8 4.5h10.4a2.3 2.3 0 0 1 2.3 2.3v7a2.3 2.3 0 0 1-2.3 2.3H9.4L4.5 20V6.8Z"/>',
+  x:'<path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/>',
+  calendar:'<rect x="4.5" y="5.5" width="15" height="15" rx="2"/><path d="M4.5 10h15M8.5 3.5v4M15.5 3.5v4"/>',
+  info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.4"/>',
+  spark:'<path d="M12 3.5 13.8 9 19.5 10.8 13.8 12.6 12 18.2 10.2 12.6 4.5 10.8 10.2 9 12 3.5Z"/>'
+};
+
+function ic(name, cls){
+  return '<svg class="ic ' + (cls || "") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    (ICONS[name] || "") + "</svg>";
+}
+
+function toast(msg){
+  var host = document.getElementById("toast-host");
+  var el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = msg;
+  host.appendChild(el);
+  setTimeout(function(){
+    el.style.transition = "opacity .2s";
+    el.style.opacity = "0";
+    setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 220);
+  }, 3200);
+}
+
+function closeModal(){
+  var host = document.getElementById("modal-host");
+  host.innerHTML = "";
+}
+
+function openModal(html, onMount){
+  var host = document.getElementById("modal-host");
+  host.innerHTML = '<div class="modal-backdrop" data-action="modal-backdrop">' +
+    '<div class="modal" role="dialog" aria-modal="true">' + html + "</div></div>";
+  if (onMount) onMount(host);
+  var focusable = host.querySelector("input,textarea,button");
+  if (focusable) focusable.focus();
+}
+
+/* ------------------------------------------------------------
+   LIVE DATA — clock, countdowns, dates card, Wikipedia summaries.
+   Countdowns recompute from the real clock every minute; the
+   clock text ticks every second so "live" is literally true.
+   ------------------------------------------------------------ */
+function clockText(){
+  return new Date().toLocaleTimeString("en-US",
+    { hour12:false, hour:"2-digit", minute:"2-digit", second:"2-digit" });
+}
+function agoText(ts){
+  var mins = Math.round((Date.now() - ts) / 60000);
+  if (mins < 2) return "just now";
+  if (mins < 60) return mins + " min ago";
+  var hrs = Math.round(mins / 60);
+  if (hrs < 24) return hrs + (hrs === 1 ? " hour ago" : " hours ago");
+  var days = Math.round(hrs / 24);
+  return days + (days === 1 ? " day ago" : " days ago");
+}
+function shorten(text, n){
+  if (!text || text.length <= n) return text || "";
+  var cut = text.slice(0, n);
+  var sp = cut.lastIndexOf(" ");
+  return cut.slice(0, sp > 40 ? sp : n) + "…";
+}
+function tickClock(){
+  var els = document.querySelectorAll(".live-clock");
+  for (var i = 0; i < els.length; i++) els[i].textContent = clockText();
+}
+function tickLive(){
+  var els = document.querySelectorAll("[data-cd]");
+  for (var i = 0; i < els.length; i++){
+    var iso = els[i].getAttribute("data-cd");
+    els[i].textContent = countdownText(iso);
+    els[i].classList.toggle("soon", daysUntil(iso) <= 7);
+  }
+}
+function dateRowHtml(item){
+  var d = parseLocalDate(item.date);
+  var mon = d.toLocaleDateString("en-US", { month:"short" });
+  var days = daysUntil(item.date);
+  return '<li>' +
+    '<span class="date-badge"><b>' + d.getDate() + "</b><span>" + esc(mon) + "</span></span>" +
+    '<span class="date-main"><b>' + esc(item.label) + "</b><span>" + esc(item.note) + "</span></span>" +
+    '<span class="date-side"><span class="date-cd' + (days <= 7 ? " soon" : "") +
+      '" data-cd="' + item.date + '">' + countdownText(item.date) + "</span></span>" +
+  "</li>";
+}
+function datesCardHtml(limit, opts){
+  opts = opts || {};
+  var items = upcomingDates(limit, opts);
+  if (!items.length) return "";
+  return '<div class="card" id="dates-card">' +
+    '<div class="row-between"><h3 class="h3">' + esc(opts.title || "Key dates, live") + "</h3>" +
+      '<span class="live-dot"><i></i><span class="live-clock">' + clockText() + "</span></span></div>" +
+    '<ul class="date-list" style="margin-top:8px">' + items.map(dateRowHtml).join("") + "</ul>" +
+    '<div class="date-sources">' +
+      '<a href="' + CONFIG.dates.sources.sat + '" target="_blank" rel="noopener">SAT dates' + "&nbsp;\u2197" + "</a>" +
+      '<a href="' + CONFIG.dates.sources.act + '" target="_blank" rel="noopener">ACT dates' + "&nbsp;\u2197" + "</a>" +
+      '<span class="muted" style="font-weight:600">Verified ' + fmtDate(CONFIG.dates.verified) +
+        " — always confirm on the official site</span>" +
+    "</div>" +
+  "</div>";
+}
+function uniDeadlinesHtml(){
+  var early = isoOf(nextOccurrence(11, 1));
+  var regular = isoOf(nextOccurrence(1, 2));
+  return '<div class="card" id="uni-deadlines">' +
+    '<div class="row-between"><h3 class="h3">Application deadlines</h3>' +
+      '<span class="live-dot"><i></i><span class="live-clock">' + clockText() + "</span></span></div>" +
+    '<ul class="date-list" style="margin-top:8px">' +
+      dateRowHtml({ label:"Early Decision / Action", date:early,
+        note:"All eight Ivies close their early rounds on Nov 1" }) +
+      dateRowHtml({ label:"Regular Decision", date:regular,
+        note:"Most Ivies use Jan 1–2 — confirm this school's exact date" }) +
+    "</ul>" +
+    '<p class="tiny muted" style="margin-top:10px">Counting down live from today\'s date. ' +
+      "Application rules move every cycle — always confirm on the school\'s admissions site.</p>" +
+  "</div>";
+}
+
+/* Wikipedia live summaries — keyless, CORS-open, cached on device. */
+var WIKI_TTL = 7 * 24 * 3600 * 1000;
+var WIKI_REVALIDATE = 24 * 3600 * 1000;
+function wikiKey(uni){ return "wiki." + uni.id; }
+function wikiCacheGet(uni){
+  var c = storeGet(wikiKey(uni));
+  return (c && c.extract) ? c : null;
+}
+function fetchWikiRaw(uni, cb){
+  if (typeof fetch !== "function") return cb(null, "unsupported");
+  var done = false;
+  var timer = setTimeout(function(){
+    if (!done){ done = true; cb(null, "timeout"); }
+  }, 8000);
+  fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(uni.wiki))
+    .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function(j){
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      var extract = (j.extract || "").trim();
+      if (!extract) return cb(null, "empty");
+      var data = {
+        at: Date.now(),
+        extract: extract,
+        img: (j.thumbnail && j.thumbnail.source) || "",
+        page: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) ||
+              ("https://en.wikipedia.org/wiki/" + uni.wiki)
+      };
+      storeSet(wikiKey(uni), data);
+      cb(data, null);
+    })
+    .catch(function(){
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      cb(null, "network");
+    });
+}
+function uniLiveInner(uni, data){
+  var img = data.img
+    ? '<img class="uni-live-img" src="' + esc(data.img) + '" alt="" loading="lazy">'
+    : "";
+  return '<div class="uni-live-body">' + img +
+    '<div class="uni-live-text">' + esc(shorten(data.extract, 340)) + "</div></div>";
+}
+function uniLiveSrc(data, fresh){
+  return '<div class="uni-live-src">' +
+    '<span class="live-dot"><i></i>Live from Wikipedia · updated ' +
+      (fresh ? "just now" : agoText(data.at)) + "</span>" +
+    '<a href="' + esc(data.page) + '" target="_blank" rel="noopener">Read more' + "&nbsp;\u2197" + "</a>" +
+  "</div>";
+}
+function patchUniLive(uni, data, fresh){
+  var el = document.getElementById("uni-live");
+  if (!el || el.getAttribute("data-uni") !== uni.id) return;
+  el.innerHTML = uniLiveInner(uni, data) + uniLiveSrc(data, fresh);
+}
+function mountUniLive(id){
+  var uni = CONFIG.universities.filter(function(u){ return u.id === id; })[0];
+  if (!uni) return;
+  var el = document.getElementById("uni-live");
+  if (!el) return;
+  var cached = wikiCacheGet(uni);
+  if (cached){
+    patchUniLive(uni, cached, false);
+    if (Date.now() - cached.at < WIKI_REVALIDATE) return;
+  }
+  fetchWikiRaw(uni, function(data, err){
+    if (data){ patchUniLive(uni, data, true); return; }
+    var src = document.getElementById("uni-live-src");
+    if (src){
+      src.innerHTML = '<span class="live-dot off"><i></i>' +
+        (err === "timeout" ? "Live fetch timed out" : "Offline — showing bundled summary") + "</span>";
+    }
+  });
+}
+function liveDataCard(){
+  var online = (typeof navigator === "undefined" || navigator.onLine !== false);
+  var cachedCount = 0, lastAt = 0;
+  CONFIG.universities.forEach(function(u){
+    var c = wikiCacheGet(u);
+    if (c){ cachedCount++; if (c.at > lastAt) lastAt = c.at; }
+  });
+  var line = function(label, value){
+    return '<div class="row-between" style="gap:14px;padding:9px 0;border-bottom:1px solid var(--border)">' +
+      '<span style="font-weight:700">' + label + "</span>" +
+      '<span class="small muted" style="text-align:right">' + value + "</span></div>";
+  };
+  return '<div class="card" id="live-data"><div class="row-between">' +
+      '<h2 class="h3">Live data</h2>' +
+      '<span class="live-dot' + (online ? "" : " off") + '"><i></i>' +
+        (online ? "Connected" : "Offline") + "</span></div>" +
+    '<div style="margin-top:10px">' +
+      line("School summaries (Wikipedia)",
+        cachedCount ? cachedCount + " cached · updated " + agoText(lastAt) : "fetched on your first visit to a school page") +
+      line("Test dates &amp; deadlines", "verified " + fmtDate(CONFIG.dates.verified)) +
+      line("Your data", storageOK ? "saved on this device" : "memory only — storage blocked") +
+    "</div>" +
+    '<div class="date-sources">' +
+      '<a href="' + CONFIG.dates.sources.sat + '" target="_blank" rel="noopener">sat.org' + "&nbsp;\u2197" + "</a>" +
+      '<a href="' + CONFIG.dates.sources.act + '" target="_blank" rel="noopener">act.org' + "&nbsp;\u2197" + "</a>" +
+      '<a href="' + CONFIG.dates.sources.commonapp + '" target="_blank" rel="noopener">commonapp.org' + "&nbsp;\u2197" + "</a>" +
+    "</div>" +
+    '<button class="btn btn-ghost btn-sm" style="margin-top:14px" data-action="refresh-live">' +
+      ic("refresh","ic-sm") + "Refresh live summaries now</button>" +
+  "</div>";
+}
+
+function updateImpact(){
+  var box = document.getElementById("impact-box");
+  if (!box || !state.draft) return;
+  var d = state.draft;
+  var meta = CONFIG.typeMeta[d.type];
+  if (!meta){
+    box.innerHTML = '<h4>Estimated impact</h4><p class="impact-main">Pick an achievement type</p>' +
+      '<p class="impact-sub">We\'ll show you how this changes your pillar score before you save.</p>';
+    return;
+  }
+  var pillar = meta.pillar;
+  var current = computePillars()[pillar];
+  var before = (current === null || current === undefined) ? 0 : current;
+  var withDraft = state.entries.filter(function(e){ return d.id === null || e.id !== d.id; }).concat([d]);
+  var after;
+  if (pillar === "academics"){
+    after = academicsScore(withDraft);
+    if (after === null) after = before;
+  } else if (pillar === "tests"){
+    after = Math.max(before, testPercentile(d) || before);
+  } else {
+    after = diminishingScore(entriesForPillar(pillar, withDraft), benchmarkFor(pillar));
+  }
+  after = Math.round(after);
+  var beforeR = Math.round(before);
+  var gain = after - beforeR;
+  var label = CONFIG.pillarMeta[pillar].label;
+  var sub;
+  if (pillar === "academics" && beforeR === 0){
+    sub = "Add your latest grade on the Academics page first — courses count on top of it.";
+  } else if (gain > 0){
+    sub = "That's +" + gain + " on this pillar. Profile strength moves too.";
+  } else if (gain === 0){
+    sub = "No change yet — add a level, result or hours to see it grow.";
+  } else {
+    sub = "Double-check the details — this entry looks weaker than what you already have.";
+  }
+
+  /* Real-time projection: overall strength + top-target fit,
+     recalculated on every keystroke — nothing saved until you save. */
+  var live = "";
+  var proj = draftProjection();
+  if (proj){
+    var strengthChange = proj.after - proj.before;
+    live += "<span>Profile strength <b>" + proj.before + " \u2192 " + proj.after + "</b>" +
+      (strengthChange > 0 ? ' <em class="up" style="font-style:normal">+' + strengthChange + "</em>" : "") + "</span>";
+    proj.fits.forEach(function(f){
+      var delta = f.after - f.before;
+      live += "<span>" + esc(f.name) + " fit <b>" + f.before + " \u2192 " + f.after + "</b>" +
+        (delta > 0 ? ' <em class="up" style="font-style:normal">up a band</em>' :
+         delta < 0 ? ' <em class="down" style="font-style:normal">down a band</em>' : "") + "</span>";
+    });
+  }
+
+  box.innerHTML =
+    '<h4>Estimated impact</h4>' +
+    '<p class="impact-main">' + esc(label) + " pillar: " + beforeR + "% → " + after + "%</p>" +
+    '<p class="impact-sub">' + sub + "</p>" +
+    (live ? '<div class="impact-live" id="impact-live">' + live + "</div>" : "");
+}
+/* ------------------------------------------------------------
+   ROUTER — hash based
+   ------------------------------------------------------------ */
+var NAV = [
+  { hash:"#/home", label:"Home", icon:"home" },
+  { hash:"#/profile", label:"Profile", icon:"user" },
+  { hash:"#/chances", label:"Chances", icon:"target" },
+  { hash:"#/roadmap", label:"Roadmap", icon:"map" },
+  { hash:"#/settings", label:"Settings", icon:"gear" }
+];
+
+function parseHash(){
+  var raw = (location.hash || "").replace(/^#/, "");
+  if (!raw) raw = state.onboarded ? "/home" : "/onboarding";
+  var qi = raw.indexOf("?");
+  var query = "";
+  if (qi >= 0){ query = raw.slice(qi + 1); raw = raw.slice(0, qi); }
+  var parts = raw.split("/").filter(function(p){ return p.length; });
+  var params = {};
+  query.split("&").forEach(function(kv){
+    if (!kv) return;
+    var i = kv.indexOf("=");
+    var k = i < 0 ? kv : kv.slice(0, i);
+    var v = i < 0 ? "1" : decodeURIComponent(kv.slice(i + 1));
+    params[decodeURIComponent(k)] = v;
+  });
+  return { parts: parts, params: params, path: raw };
+}
+
+function go(hash){ location.hash = hash; }
+
+function activeNav(path){
+  if (path.indexOf("/profile") === 0) return "#/profile";
+  if (path.indexOf("/university") === 0) return "#/chances";
+  if (path.indexOf("/add") === 0 || path.indexOf("/edit") === 0) return "#/profile";
+  return "#" + path;
+}
+
+function shell(inner, opts){
+  opts = opts || {};
+  var r = parseHash();
+  var current = activeNav(r.path);
+  var navHtml = NAV.map(function(n){
+    var on = n.hash === current;
+    return '<a class="nav-link" href="' + n.hash + '"' + (on ? ' aria-current="page"' : "") + ">" +
+      ic(n.icon) + "<span>" + n.label + "</span></a>";
+  }).join("");
+  var tabHtml = NAV.map(function(n){
+    var on = n.hash === current;
+    return '<a href="' + n.hash + '"' + (on ? ' aria-current="page"' : "") + ">" +
+      ic(n.icon) + "<span>" + n.label + "</span></a>";
+  }).join("");
+
+  var strength = state.onboarded ? computeStrength() : null;
+  var sideFoot = strength
+    ? '<div class="side-foot"><p><b style="color:var(--ink);font-size:16px">' + strength.score +
+      "/100</b> profile strength<br>" + esc(strength.label) + "</p></div>"
+    : "";
+
+  return '<div class="shell">' +
+    '<aside class="sidebar">' +
+      '<a class="brand" href="#/home"><span class="brand-mark">SA</span>' +
+        '<span><b>Scholars Abroad</b><span>Ivy Profile Builder</span></span></a>' +
+      navHtml + sideFoot +
+    "</aside>" +
+    '<div class="main"><main class="content" id="main">' + inner + "</main></div>" +
+    '<nav class="tabbar" aria-label="Main">' + tabHtml + "</nav>" +
+  "</div>";
+}
+
+var app;
+
+function render(){
+  var r = parseHash();
+
+  if (!state.onboarded && r.parts[0] !== "onboarding"){
+    location.replace("#/onboarding");
+    return;
+  }
+
+  var html = "";
+  var route = r.parts[0] || "home";
+  var bare = false; // bare = no nav shell (onboarding)
+
+  switch (route){
+    case "onboarding": bare = true; html = viewOnboarding(r); break;
+    case "home":       html = viewHome(); break;
+    case "profile":    html = r.parts[1] ? viewPillar(r.parts[1]) : viewProfile(); break;
+    case "add":        html = viewEntryForm(null, r.params.type); break;
+    case "edit":       html = viewEntryForm(r.parts[1], null); break;
+    case "chances":    html = viewChances(r.params.sort); break;
+    case "university": html = viewUniversity(r.parts[1]); break;
+    case "roadmap":    html = viewRoadmap(r.params.period); break;
+    case "settings":   html = viewSettings(); break;
+    default:
+      html = viewNotFound();
+  }
+
+  app.innerHTML = bare ? html : shell(html);
+  window.scrollTo(0, 0);
+  if (route === "add" || route === "edit") updateImpact();
+  if (route === "onboarding"){
+    var obStep = r.params.step
+      ? Math.max(1, Math.min(3, parseInt(r.params.step, 10) || 1))
+      : (state.obStep || 1);
+    if (obStep === 3) updateObLive();
+  }
+  if (route === "university") mountUniLive(r.parts[1]);
+  tickLive();
+  markTabBar();
+}
+
+function markTabBar(){ /* aria-current handled at render */ }
+
+function viewNotFound(){
+  return '<div class="card" style="text-align:center">' +
+    '<h1 class="h2">We couldn\'t find that page</h1>' +
+    '<p class="muted" style="margin-top:8px">Let\'s get you back on track.</p>' +
+    '<a class="btn btn-primary" href="#/home" style="margin-top:16px">Go home</a></div>';
+}
+
+/* ------------------------------------------------------------
+   VIEW — Onboarding (3 steps, progress bar, Skip)
+   ------------------------------------------------------------ */
+function viewOnboarding(r){
+  var step = state.obStep || 1;
+  if (r.params.step) step = Math.max(1, Math.min(3, parseInt(r.params.step, 10) || 1));
+  var s = state.student;
+
+  var progress = '<div class="ob-steps" role="progressbar" aria-valuenow="' + step +
+    '" aria-valuemin="1" aria-valuemax="3" aria-label="Setup step ' + step + ' of 3">' +
+    [1,2,3].map(function(i){ return '<i class="' + (i <= step ? "on" : "") + '"></i>'; }).join("") +
+    "</div>";
+
+  var body = "";
+  var primary = "";
+  var secondary = "";
+
+  if (step === 1){
+    var tiles = CONFIG.grades.map(function(g){
+      var on = s.grade === g.id;
+      return '<button type="button" class="tile" data-action="pick-grade" data-grade="' + g.id +
+        '" aria-pressed="' + on + '">' + g.label + "<small>" + g.sub + "</small></button>";
+    }).join("");
+    body =
+      '<p class="eyebrow">Step 1 of 3</p>' +
+      '<h1 class="h1" style="margin-top:6px">Which grade are you in?</h1>' +
+      '<p class="muted" style="margin-top:8px">This sets what we expect at your age — younger students are never scored like graduating seniors.</p>' +
+      '<div class="tiles" style="margin-top:20px">' + tiles + "</div>" +
+      '<p class="tip" style="margin-top:16px" id="grade-tip">' + esc(CONFIG.gradeTips[s.grade] || "Pick your grade to see a tip.") + "</p>" +
+      '<div class="field" style="margin-top:20px">' +
+        '<label for="ob-name">Your first name</label>' +
+        '<input class="input" id="ob-name" type="text" data-field="student.name" value="' + esc(s.name) +
+        '" placeholder="e.g. Aarav" autocomplete="given-name" maxlength="40">' +
+        '<span class="hint">Used just for your welcome message. You can change it later.</span>' +
+      "</div>";
+    primary = '<button class="btn btn-primary btn-block" data-action="ob-next">Continue</button>';
+    secondary = '<div class="row" style="justify-content:space-between;margin-top:14px">' +
+      '<button class="link-btn" data-action="ob-demo">Try with demo data</button>' +
+      '<button class="link-btn muted" data-action="ob-skip">Skip for now</button></div>';
+  }
+
+  if (step === 2){
+    var chips = CONFIG.majors.map(function(m){
+      var on = s.major === m;
+      return '<button type="button" class="chip-btn" data-action="pick-major" data-major="' + esc(m) +
+        '" aria-pressed="' + on + '">' + esc(m) + "</button>";
+    }).join("");
+    body =
+      '<p class="eyebrow">Step 2 of 3</p>' +
+      '<h1 class="h1" style="margin-top:6px">What might you study?</h1>' +
+      '<p class="muted" style="margin-top:8px">No pressure — “Undecided” is a real answer, and you can change it any time.</p>' +
+      '<div class="chip-row" style="margin-top:20px">' + chips + "</div>" +
+      '<p class="tip" style="margin-top:16px">A declared major helps us check <b>major fit</b> — some Ivies (like Cornell) admit into specific schools, so matching your intended subject matters more there.</p>';
+    primary = '<button class="btn btn-primary btn-block" data-action="ob-next">Continue</button>';
+    secondary = '<div class="row" style="justify-content:space-between;margin-top:14px">' +
+      '<button class="link-btn" data-action="ob-back">Back</button>' +
+      '<button class="link-btn muted" data-action="ob-skip">Skip for now</button></div>';
+  }
+
+  if (step === 3){
+    var scales = [
+      { id:"percentage", label:"Percentage" },
+      { id:"gpa4", label:"GPA (4.0)" },
+      { id:"cbse", label:"CBSE / ICSE" },
+      { id:"ib", label:"IB (45)" }
+    ].map(function(sc){
+      return '<button type="button" class="chip-btn" data-action="pick-scale" data-scale="' + sc.id +
+        '" aria-pressed="' + (s.scale === sc.id) + '">' + sc.label + "</button>";
+    }).join("");
+
+    var optField = function(id, label, value, ph){
+      return '<div class="field"><label for="' + id + '">' + label +
+        ' <span class="muted" style="font-weight:600">— add later is fine</span></label>' +
+        '<input class="input" id="' + id + '" type="text" data-field="student.' + id +
+        '" value="' + esc(value || "") + '" placeholder="' + ph + '" inputmode="numeric"></div>';
+    };
+
+    body =
+      '<p class="eyebrow">Step 3 of 3</p>' +
+      '<h1 class="h1" style="margin-top:6px">Your current academics</h1>' +
+      '<p class="muted" style="margin-top:8px">Just your latest result. Everything else on this step is optional.</p>' +
+      '<div class="seg-field" style="margin-top:20px"><span class="label">Grade scale</span>' +
+        '<div class="chip-row">' + scales + "</div></div>" +
+      '<div class="field" style="margin-top:16px">' +
+        '<label for="ob-current">Latest result</label>' +
+        '<input class="input" id="ob-current" type="text" data-field="student.current" value="' + esc(s.current) +
+        '" placeholder="' + (s.scale === "gpa4" ? "e.g. 3.7" : s.scale === "ib" ? "e.g. 38" : "e.g. 92") +
+        '" inputmode="decimal">' +
+        '<span class="hint" id="scale-hint">' + esc(scaleHint(s.scale)) + "</span>" +
+      "</div>" +
+      '<div class="grid-2" style="margin-top:16px">' +
+        optField("sat","SAT score", s.sat, "e.g. 1250") +
+        optField("act","ACT score", s.act, "e.g. 26") +
+        optField("ib","IB total", s.ib, "e.g. 38") +
+        optField("ap","AP results", s.ap, "e.g. 4, 5, 4") +
+      "</div>" +
+      '<label class="consent" style="margin-top:20px">' +
+        '<input type="checkbox" data-field="consent"' + (state.consent ? " checked" : "") + ">" +
+        "<span>A parent or guardian is okay with me using this app. Everything I type stays on this device — nothing is uploaded.</span>" +
+      "</label>" +
+      '<div id="ob-live" class="impact"></div>';
+    primary = '<button class="btn btn-primary btn-block" data-action="ob-finish">See my profile</button>';
+    secondary = '<div class="row" style="justify-content:space-between;margin-top:14px">' +
+      '<button class="link-btn" data-action="ob-back">Back</button>' +
+      '<button class="link-btn muted" data-action="ob-skip">Skip for now</button></div>';
+  }
+
+  return '<div class="ob">' +
+    '<div class="ob-top">' +
+      '<span class="ob-logo"><span class="brand-mark" style="width:30px;height:30px;font-size:13px">SA</span>Scholars Abroad</span>' +
+      '<button class="link-btn muted" data-action="ob-skip">Skip</button>' +
+    "</div>" +
+    progress +
+    '<div class="stack">' + body + "</div>" +
+    '<div style="margin-top:24px">' + primary + secondary + "</div>" +
+  "</div>";
+}
+
+function scaleHint(scale){
+  if (scale === "gpa4") return "Your GPA out of 4.0.";
+  if (scale === "ib") return "Your IB diploma total out of 45.";
+  if (scale === "cbse") return "Your CBSE or ICSE percentage — we convert it for you.";
+  return "Your percentage out of 100.";
+}
+
+/* ------------------------------------------------------------
+   VIEW — Home dashboard
+   ------------------------------------------------------------ */
+function changeBadge(){
+  var h = state.history;
+  if (!h || h.length < 2) return "";
+  var now = Date.now();
+  var old = null;
+  for (var i = 0; i < h.length; i++){
+    if (now - h[i].t >= 20 * 24 * 3600 * 1000) old = h[i];
+  }
+  if (!old) return "";
+  var diff = state.history[state.history.length - 1].score - old.score;
+  if (diff >= 1) return '<span class="badge-change">+' + diff + " this month</span>";
+  return "";
+}
+
+function ringSvg(score){
+  var r = 86, c = 2 * Math.PI * r;
+  var off = c * (1 - score / 100);
+  return '<svg viewBox="0 0 200 200" role="img" aria-label="Profile strength ' + score + ' out of 100">' +
+    '<circle cx="100" cy="100" r="' + r + '" fill="none" stroke="#E3E7EB" stroke-width="13"/>' +
+    '<circle cx="100" cy="100" r="' + r + '" fill="none" stroke="#1D5A47" stroke-width="13" stroke-linecap="round" ' +
+    'stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) +
+    '" transform="rotate(-90 100 100)" style="transition:stroke-dashoffset .4s ease"/>' +
+    "</svg>";
+}
+
+function pillarBarRow(key, score, weight){
+  var meta = CONFIG.pillarMeta[key];
+  var weak = score !== null && score !== undefined && score < 50;
+  var val = (score === null || score === undefined) ? null : Math.round(score);
+  return '<div class="bar-row">' +
+    '<div class="bar-label"><span>' + esc(meta.label) + "</span><span>" +
+    (val === null ? "Not yet" : val + "%") + "</span></div>" +
+    '<div class="bar' + (weak ? " weak" : "") + '"><i style="width:' + (val === null ? 0 : val) + '%"></i></div>' +
+    "</div>";
+}
+
+function nextMoveCard(task){
+  if (!task){
+    return '<div class="card"><p class="eyebrow">Your next best move</p>' +
+      '<h3 class="h2" style="margin-top:8px">You\'re all caught up</h3>' +
+      '<p class="muted" style="margin-top:8px">Every task on your roadmap is done. Nice work — add a new achievement to keep growing.</p>' +
+      '<a class="btn btn-primary" href="#/add" style="margin-top:16px">Add achievement</a></div>';
+  }
+  var meta = CONFIG.pillarMeta[task.pillar];
+  var label = meta ? meta.label : "Not scored";
+  return '<div class="move-card">' +
+    '<p class="eyebrow">Your next best move</p>' +
+    "<h3>" + esc(task.title) + "</h3>" +
+    "<p>It's the best ratio of profile points to your time right now — about " +
+      esc(task.effort) + " of work.</p>" +
+    '<div class="move-meta">' +
+      '<span class="chip">' + esc(label) + "</span>" +
+      '<span class="chip">+' + task.points + " points</span>" +
+      '<span class="chip">' + esc(task.effort) + "</span>" +
+    "</div>" +
+    '<div class="move-actions">' +
+      '<button class="btn btn-white" data-action="move-do" data-id="' + task.id + '">Do it now</button>' +
+      '<button class="btn btn-outline" data-action="move-later" data-id="' + task.id + '">Later</button>' +
+    "</div></div>";
+}
+
+function viewHome(){
+  var profile = computeStrength();
+  var name = state.student.name ? state.student.name.trim() : "";
+  var unis = computeUniversities();
+  var top3 = unis.slice(0, 3);
+  var move = nextBestMove();
+
+  var targets = top3.map(function(u, i){
+    return '<a class="target-card" href="#/university/' + u.id + '">' +
+      '<span class="target-rank">' + (i + 1) + "</span>" +
+      '<span class="uni-main"><span class="target-name">' + esc(u.name) + "</span>" +
+      '<span class="uni-sub">Fit ' + u.fit + " of 5 · biggest lever: " +
+        esc(CONFIG.pillarMeta[u.lever] ? CONFIG.pillarMeta[u.lever].label : "—") + "</span></span>" +
+      bandChip(u.fit) + "</a>";
+  }).join("");
+
+  var pillarBars = CONFIG.pillarOrder.map(function(p){
+    return pillarBarRow(p, profile.pillars[p], profile.weights[p]);
+  }).join("");
+
+  var emptyHint = state.entries.length === 0
+    ? '<div class="card" style="background:var(--tint);border:none">' +
+      '<p class="h3">Welcome — your profile is brand new.</p>' +
+      '<p class="small" style="margin-top:6px;color:#26564A">Add one thing you\'re already proud of — a club, a contest, anything. It takes 2 minutes and your score moves immediately.</p>' +
+      '<a class="btn btn-primary" href="#/add" style="margin-top:14px">Add your first achievement</a></div>'
+    : "";
+
+  return '<div class="stack-lg">' +
+    "<div>" +
+      '<h1 class="h1 hello">Hi' + (name ? ", " + esc(name) : "") + "</h1>" +
+      '<p class="muted">Here\'s where your profile stands today.</p>' +
+    "</div>" +
+    emptyHint +
+    '<div class="grid-2 grid-home">' +
+      '<div class="card" style="text-align:center">' +
+        '<div class="ring-wrap">' + ringSvg(profile.score) +
+          '<div class="ring-center">' +
+            '<span class="ring-score">' + profile.score + "<sub>/100</sub></span>" +
+            '<span class="ring-status">' + esc(profile.label) + "</span>" +
+            '<span class="ring-note">Profile strength</span>' +
+          "</div></div>" +
+        '<div style="margin-top:6px">' + changeBadge() + "</div>" +
+        '<div class="divider" style="margin:16px 0"></div>' +
+        '<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">' +
+          (profile.spike > 0 ? '<span class="chip chip-soft">+' + profile.spike + " spike bonus</span>" : "") +
+          (profile.theme > 0 ? '<span class="chip chip-soft">+' + profile.theme + " story bonus</span>" : "") +
+        "</div>" +
+        '<p class="tiny muted" style="margin-top:12px">Weighted across your 5 pillars, adjusted for ' +
+          esc(state.student.grade === "ug" ? "UG" : "Grade " + state.student.grade) + ".</p>" +
+      "</div>" +
+      '<div class="stack">' +
+        '<div class="card"><p class="eyebrow">Your five pillars</p>' +
+          '<div class="stack" style="gap:13px;margin-top:14px">' + pillarBars + "</div>" +
+          '<a class="link-btn" href="#/profile" style="margin-top:6px">Open profile builder ' + ic("chev","ic-sm") + "</a>" +
+        "</div>" +
+      "</div>" +
+    "</div>" +
+    nextMoveCard(move) +
+    datesCardHtml(3) +
+    '<div class="stack">' +
+      '<div class="row-between"><h2 class="h2">Your top targets</h2>' +
+        '<a class="link-btn" href="#/chances">See all</a></div>' +
+      '<div class="stack" style="gap:10px">' + targets + "</div>" +
+    "</div>" +
+    '<div class="disclaimer"><b>Honest note:</b> bands are estimates built from your profile. Ivy admissions are holistic and unpredictable — treat every Ivy as a reach and build a balanced list.</div>' +
+  "</div>";
+}
+/* ------------------------------------------------------------
+   VIEW — Profile builder (5 pillar cards)
+   ------------------------------------------------------------ */
+function pillarStatusText(key, score){
+  if (key === "academics"){
+    if (score === null) return "Add your latest grade to score this pillar";
+    return Math.round(score) + "% — " + (score >= 70 ? "strong academics" : score >= 50 ? "solid, keep it up" : "room to grow");
+  }
+  if (key === "tests"){
+    if (score === null){
+      var g = state.student.grade;
+      if (g === "8" || g === "9" || g === "10") return "Not yet — that's normal at your grade";
+      return "No test logged yet — add a practice score any time";
+    }
+    return Math.round(score) + "% — " + (score >= 75 ? "excellent result" : score >= 55 ? "good, a retake could lift it" : "consider preparing and retaking");
+  }
+  var n = entriesForPillar(key).length;
+  if (n === 0){
+    var empties = {
+      activities: "No activities yet — clubs and volunteering count",
+      awards: "No awards yet — even school-level ones count",
+      projects: "No projects yet — anything you've built counts"
+    };
+    return empties[key] || "Add your first entry";
+  }
+  var word = score >= 75 ? "strong" : score >= 50 ? "solid" : score >= 25 ? "building" : "just starting";
+  return n + (n === 1 ? " entry" : " entries") + " — " + word;
+}
+
+function viewProfile(){
+  var profile = computeStrength();
+  var cards = CONFIG.pillarOrder.map(function(p){
+    var meta = CONFIG.pillarMeta[p];
+    var score = profile.pillars[p];
+    var val = (score === null || score === undefined) ? null : Math.round(score);
+    var weak = val !== null && val < 50;
+    return '<a class="card card-tap pillar-card" href="#/profile/' + p + '">' +
+      '<div class="pillar-top">' +
+        '<span class="pillar-icon">' + ic(meta.icon) + "</span>" +
+        '<span style="flex:1;min-width:0"><span class="h3" style="display:block">' + esc(meta.label) + "</span>" +
+        '<span class="small muted" style="display:block;margin-top:2px">' + esc(pillarStatusText(p, score)) + "</span></span>" +
+        '<span class="pct">' + (val === null ? "—" : val) + "</span>" +
+      "</div>" +
+      '<div class="bar' + (weak ? " weak" : "") + '"><i style="width:' + (val === null ? 0 : val) + '%"></i></div>' +
+    "</a>";
+  }).join("");
+
+  return '<div class="stack-lg">' +
+    '<div class="page-head"><div class="grow">' +
+      '<h1 class="h1">Profile builder</h1>' +
+      '<p class="muted" style="margin-top:6px">Five pillars make up your profile strength. Tap one to see your entries.</p>' +
+    "</div></div>" +
+    '<div class="stack">' + cards + "</div>" +
+    '<div class="disclaimer">Tip: depth beats breadth. Three sustained, high-level activities say more than ten shallow ones — the scoring works the same way.</div>' +
+    '<div style="height:60px"></div>' +
+    '<a class="fab" href="#/add" aria-label="Add achievement">' + ic("plus") + "Add achievement</a>" +
+  "</div>";
+}
+
+/* ------------------------------------------------------------
+   VIEW — Pillar detail (entries + add)
+   ------------------------------------------------------------ */
+var PILLAR_EMPTY = {
+  academics: { title:"Your grades live here", body:"Add your latest result on the form below — it drives 30% of your profile strength.", cta:"Add grades", href:"#/onboarding" },
+  tests: { title:"No test scores yet", body:"That's expected in younger grades. When you take a practice or real SAT/ACT, log it here.", cta:"Add a test score", href:"#/add?type=test_score" },
+  activities: { title:"No activities yet", body:"Clubs, volunteering, jobs and sports all count — even school-level ones. Add your first.", cta:"Add an activity", href:"#/add?type=club" },
+  awards: { title:"No awards yet", body:"Even school-level ones count. Add your first — a certificate photo is plenty.", cta:"Add an award", href:"#/add?type=competition" },
+  projects: { title:"No projects yet", body:"Anything you've built, coded or studied counts — even a small one. Add it.", cta:"Add a project", href:"#/add?type=project" }
+};
+
+function entryListItem(entry){
+  var meta = CONFIG.typeMeta[entry.type] || { label: entry.type };
+  var chips = '<span class="chip chip-grey">' + esc(meta.label) + "</span>";
+  if (entry.level) chips += '<span class="chip chip-grey">' + esc(cap(entry.level)) + "</span>";
+  if (entry.result && RESULT_TYPES.indexOf(entry.type) !== -1) chips += '<span class="chip chip-grey">' + esc(resultLabel(entry.result, entry.type)) + "</span>";
+  if (entry.role && entry.role !== "member") chips += '<span class="chip chip-grey">' + esc(roleLabel(entry.role)) + "</span>";
+  if (entry.proofFile) chips += '<span class="chip chip-soft">Proof attached</span>';
+  if (entry.themed) chips += '<span class="chip chip-soft">Your major</span>';
+
+  return '<li class="entry-item">' +
+    '<div class="entry-main"><h4>' + esc(entry.name || "Untitled") + "</h4>" +
+      (entry.description ? '<p class="small muted" style="margin-top:5px">' + esc(entry.description) + "</p>" : "") +
+      '<div class="entry-meta">' + chips + "</div>" +
+      (entry.hoursPerWeek && entry.weeksPerYear
+        ? '<p class="tiny muted" style="margin-top:7px">' + esc(entry.hoursPerWeek) + " hrs/week × " +
+          esc(entry.weeksPerYear) + " weeks/year</p>" : "") +
+    "</div>" +
+    '<div class="entry-actions">' +
+      '<button class="icon-btn" data-action="edit-entry" data-id="' + entry.id + '" aria-label="Edit ' + esc(entry.name) + '">' + ic("pencil") + "</button>" +
+      '<button class="icon-btn" data-action="delete-entry" data-id="' + entry.id + '" aria-label="Delete ' + esc(entry.name) + '">' + ic("trash") + "</button>" +
+    "</div></li>";
+}
+
+function viewPillar(pillar){
+  var meta = CONFIG.pillarMeta[pillar];
+  if (!meta) return viewNotFound();
+  var profile = computeStrength();
+  var score = profile.pillars[pillar];
+  var val = (score === null || score === undefined) ? null : Math.round(score);
+  var weak = val !== null && val < 50;
+
+  var head = '<div class="page-head">' +
+    '<a class="icon-btn" href="#/profile" aria-label="Back to profile">' + ic("back") + "</a>" +
+    '<div class="grow"><h1 class="h1">' + esc(meta.label) + "</h1>" +
+    '<p class="muted small" style="margin-top:4px">' + esc(pillarStatusText(pillar, score)) + "</p></div>" +
+    "</div>";
+
+  var scoreBlock = '<div class="card"><div class="row-between">' +
+    "<div><p class=\"eyebrow\">Pillar score</p>" +
+    '<p class="ring-score" style="font-size:38px;margin-top:4px">' + (val === null ? "—" : val) + '<sub>/100</sub></p></div>' +
+    '<span class="chip chip-soft">' + Math.round((profile.weights[pillar] || 0) * 100) + "% of profile</span>" +
+    "</div>" +
+    '<div class="bar' + (weak ? " weak" : "") + '" style="margin-top:14px"><i style="width:' + (val === null ? 0 : val) + '%"></i></div>' +
+    '<p class="tiny muted" style="margin-top:12px">' + esc(pillarExplain(pillar)) + "</p></div>";
+
+  var body = "";
+  if (pillar === "academics"){
+    body = academicsForm() + entriesSection(pillar);
+  } else if (pillar === "tests"){
+    body = entriesSection(pillar);
+  } else {
+    body = entriesSection(pillar);
+  }
+
+  return head + '<div class="stack-lg">' + scoreBlock + body + "</div>" +
+    '<div style="height:60px"></div>' +
+    '<a class="fab" href="#/add?type=' + firstTypeForPillar(pillar) + '" aria-label="Add achievement">' +
+    ic("plus") + "Add achievement</a>";
+}
+
+function pillarExplain(pillar){
+  if (pillar === "academics") return "60% your grades (we convert your scale), 25% how hard your courses are, 15% whether your trend is going up.";
+  if (pillar === "tests") return "Your best SAT/ACT/IB/AP result, converted to a percentile-style score. Skipped entirely in Grades 8–9.";
+  return "Scored with diminishing returns: your best entry counts most, each next one counts 60% as much. Depth beats a long list.";
+}
+
+function firstTypeForPillar(pillar){
+  var found = "competition";
+  CONFIG.typeOrder.forEach(function(t){ if (CONFIG.typeMeta[t].pillar === pillar) found = t; });
+  if (pillar === "activities") return "club";
+  if (pillar === "projects") return "project";
+  if (pillar === "tests") return "test_score";
+  if (pillar === "academics") return "course";
+  return found;
+}
+
+function entriesSection(pillar){
+  var list = entriesForPillar(pillar);
+  if (!list.length){
+    var e = PILLAR_EMPTY[pillar];
+    return '<div class="empty">' +
+      '<span class="pillar-icon">' + ic(CONFIG.pillarMeta[pillar].icon) + "</span>" +
+      "<h4>" + esc(e.title) + "</h4><p>" + esc(e.body) + "</p>" +
+      '<a class="btn btn-primary" href="' + e.href + '">' + esc(e.cta) + "</a></div>";
+  }
+  var items = list.map(entryListItem).join("");
+  return '<div class="card"><div class="row-between" style="margin-bottom:6px">' +
+    '<h2 class="h3">Your entries (' + list.length + ")</h2>" +
+    '<a class="link-btn" href="#/add?type=' + firstTypeForPillar(pillar) + '">' + ic("plus","ic-sm") + "Add</a></div>" +
+    "<ul>" + items + "</ul></div>";
+}
+
+function academicsForm(){
+  var a = state.academics || {};
+  var profile = computeStrength();
+  var score = profile.pillars.academics;
+  return '<div class="card"><h2 class="h3">Your grades</h2>' +
+    '<div class="seg-field" style="margin-top:14px"><span class="label">Scale</span>' +
+      '<div class="chip-row">' +
+        [["percentage","Percentage"],["gpa4","GPA (4.0)"],["cbse","CBSE / ICSE"],["ib","IB (45)"]].map(function(sc){
+          return '<button type="button" class="chip-btn" data-action="acad-scale" data-scale="' + sc[0] +
+            '" aria-pressed="' + ((a.scale || "percentage") === sc[0]) + '">' + sc[1] + "</button>";
+        }).join("") +
+      "</div></div>" +
+    '<div class="grid-2" style="margin-top:16px">' +
+      '<div class="field"><label for="ac-current">Latest result</label>' +
+        '<input class="input" id="ac-current" type="text" data-field="academics.current" value="' + esc(a.current || "") +
+        '" placeholder="e.g. 92" inputmode="decimal"></div>' +
+      '<div class="field"><label for="ac-prev">Previous result <span class="muted" style="font-weight:600">— optional</span></label>' +
+        '<input class="input" id="ac-prev" type="text" data-field="academics.previous" value="' + esc(a.previous || "") +
+        '" placeholder="e.g. 88" inputmode="decimal"><span class="hint">Used to spot an improving trend.</span></div>' +
+    "</div>" +
+    '<div class="grid-2" style="margin-top:16px">' +
+      '<div class="field"><label for="ac-rt">Advanced courses taken <span class="muted" style="font-weight:600">— optional</span></label>' +
+        '<input class="input" id="ac-rt" type="text" data-field="academics.rigourTaken" value="' + esc(a.rigourTaken || "") +
+        '" placeholder="e.g. 3" inputmode="numeric"></div>' +
+      '<div class="field"><label for="ac-ro">…out of how many your school offers</label>' +
+        '<input class="input" id="ac-ro" type="text" data-field="academics.rigourOffered" value="' + esc(a.rigourOffered || "") +
+        '" placeholder="e.g. 5" inputmode="numeric"></div>' +
+    "</div>" +
+    '<p class="tiny muted" style="margin-top:14px">Current academics score: <b style="color:var(--ink)" id="acad-live-score">' +
+      (score === null ? "not scored yet" : Math.round(score) + "/100") +
+      '</b> · overall profile <b style="color:var(--ink)" id="acad-overall">' + profile.score +
+      '/100</b> — changes save as you type.</p>' +
+  "</div>";
+}
+
+function cap(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
+function resultLabel(r, type){
+  if (type === "research"){
+    return r === "winner" ? "Published / presented" : r === "finalist" ? "Led it" : "Assisted";
+  }
+  if (type === "project"){
+    return r === "winner" ? "In use by others" : r === "finalist" ? "Built & working" : "Draft stage";
+  }
+  return r === "winner" ? "Winner / top result" : r === "finalist" ? "Finalist" : "Participation";
+}
+function roleLabel(r){
+  return r === "founder" ? "Founder / President" : r === "core" ? "Core team" : "Member";
+}
+
+/* ------------------------------------------------------------
+   VIEW — Add / edit achievement
+   ------------------------------------------------------------ */
+function blankDraft(presetType){
+  return {
+    id: null, type: presetType || "", name: "",
+    level: "school", result: "", role: "member",
+    hoursPerWeek: "", weeksPerYear: "",
+    startDate: "", endDate: "",
+    description: "", proofFile: "", themed: false,
+    testName: "SAT", scoreValue: ""
+  };
+}
+
+function viewEntryForm(editId, presetType){
+  var d;
+  if (editId){
+    var found = state.entries.filter(function(e){ return e.id === editId; })[0];
+    if (!found) return viewNotFound();
+    d = Object.assign({}, found);
+    state.draft = d;
+    saveState();
+  } else if (state.draft && state.draft.id === null){
+    d = state.draft;
+    if (presetType && !d.type) d.type = presetType;
+  } else {
+    d = blankDraft(presetType);
+    state.draft = d;
+    saveState();
+  }
+  if (presetType && !d.type) d.type = presetType;
+
+  var isEdit = !!editId;
+  var meta = d.type ? CONFIG.typeMeta[d.type] : null;
+  var types = CONFIG.typeOrder.map(function(t){
+    var m = CONFIG.typeMeta[t];
+    return '<button type="button" class="chip-btn" data-action="pick-type" data-type="' + t +
+      '" aria-pressed="' + (d.type === t) + '">' + esc(m.label) + "</button>";
+  }).join("");
+
+  var fields = "";
+  if (meta) fields = entryFields(d);
+
+  return '<div class="page-head">' +
+      '<button class="icon-btn" data-action="form-back" aria-label="Go back">' + ic("back") + "</button>" +
+      '<div class="grow"><h1 class="h1">' + (isEdit ? "Edit achievement" : "Add achievement") + "</h1>" +
+      '<p class="muted small" style="margin-top:4px">One thing you\'ve done. That\'s all we need.</p></div>' +
+    "</div>" +
+    '<div class="stack-lg">' +
+      '<div class="stack"><span class="label">What kind of achievement is it?</span>' +
+        '<div class="chip-row">' + types + "</div>" +
+        '<p class="err" id="err-type" hidden>Pick one so we know where it counts.</p></div>' +
+
+      (meta ? '<div class="stack">' +
+        '<div class="field"><label for="f-name">Name</label>' +
+          '<input class="input" id="f-name" type="text" data-field="draft.name" value="' + esc(d.name) +
+          '" placeholder="' + esc(namePlaceholder(d.type)) + '" maxlength="90">' +
+          '<p class="err" id="err-name" hidden>Give it a short name so you can find it later.</p></div>' +
+        fields +
+      "</div>" : "") +
+
+      '<div id="impact-box" class="impact"></div>' +
+
+      '<div class="row" style="gap:10px">' +
+        '<button class="btn btn-primary" style="flex:1" data-action="save-entry">' +
+          (isEdit ? "Save changes" : "Save achievement") + "</button>" +
+        '<button class="btn btn-ghost" data-action="form-back">Cancel</button>' +
+      "</div>" +
+      '<p class="tiny muted" style="text-align:center">Nothing leaves this device.</p>' +
+    "</div>";
+}
+
+function namePlaceholder(type){
+  var map = {
+    competition:"e.g. State Math Olympiad",
+    club:"e.g. Robotics Club — President",
+    project:"e.g. Crop Price Predictor",
+    research:"e.g. Traffic Flow Study",
+    volunteering:"e.g. Weekend Math Tutoring",
+    internship:"e.g. Web Developer Intern",
+    test_score:"e.g. SAT — October attempt",
+    course:"e.g. Intro to Machine Learning"
+  };
+  return map[type] || "e.g. Science Fair";
+}
+
+function entryFields(d){
+  var html = "";
+  var showLevel = ["competition","club","project","research","internship"].indexOf(d.type) !== -1;
+  var showResult = RESULT_TYPES.indexOf(d.type) !== -1;
+  var showRole = ["club","project","research","volunteering","internship"].indexOf(d.type) !== -1;
+
+  if (d.type === "test_score"){
+    var tests = ["SAT","ACT","IB","AP"].map(function(t){
+      return '<button type="button" class="chip-btn" data-action="pick-test" data-test="' + t +
+        '" aria-pressed="' + ((d.testName || "SAT") === t) + '">' + t + "</button>";
+    }).join("");
+    var range = CONFIG.testRange[d.testName || "SAT"];
+    html += '<div class="seg-field"><span class="label">Which test?</span><div class="chip-row">' + tests + "</div></div>" +
+      '<div class="grid-2" style="margin-top:16px">' +
+        '<div class="field"><label for="f-score">Your score</label>' +
+          '<input class="input" id="f-score" type="text" inputmode="decimal" data-field="draft.scoreValue" value="' +
+          esc(d.scoreValue || "") + '" placeholder="' + range.min + "–" + range.max + '">' +
+          '<p class="err" id="err-score" hidden>Pop in the score — you can change it later.</p></div>' +
+        '<div class="field"><label for="f-date">Test date <span class="muted" style="font-weight:600">— optional</span></label>' +
+          '<input class="input" id="f-date" type="date" data-field="draft.endDate" value="' + esc(d.endDate || "") + '"></div>' +
+      "</div>";
+    return html;
+  }
+
+  if (showLevel){
+    var levels = ["school","state","national","international"].map(function(l){
+      return '<button type="button" class="chip-btn" data-action="pick-level" data-level="' + l +
+        '" aria-pressed="' + (d.level === l) + '">' + cap(l) + "</button>";
+    }).join("");
+    html += '<div class="seg-field"><span class="label">Highest level reached</span>' +
+      '<div class="chip-row">' + levels + "</div>" +
+      '<span class="hint">The level is the biggest single factor in your score.</span></div>';
+  }
+
+  if (showResult){
+    var opts = resultOptions(d.type);
+    var res = opts.map(function(o){
+      return '<button type="button" class="chip-btn" data-action="pick-result" data-result="' + o.id +
+        '" aria-pressed="' + (d.result === o.id) + '">' + esc(o.label) + "</button>";
+    }).join("");
+    html += '<div class="seg-field"><span class="label">How did it go?</span><div class="chip-row">' + res + "</div></div>";
+  }
+
+  if (showRole){
+    var roles = ["member","core","founder"].map(function(r){
+      return '<button type="button" class="chip-btn" data-action="pick-role" data-role="' + r +
+        '" aria-pressed="' + (d.role === r) + '">' + esc(roleLabel(r)) + "</button>";
+    }).join("");
+    html += '<div class="seg-field"><span class="label">Your role</span><div class="chip-row">' + roles + "</div></div>";
+  }
+
+  html += '<div class="grid-2">' +
+    '<div class="field"><label for="f-hrs">Hours per week</label>' +
+      '<input class="input" id="f-hrs" type="text" inputmode="decimal" data-field="draft.hoursPerWeek" value="' +
+      esc(d.hoursPerWeek || "") + '" placeholder="e.g. 3"></div>' +
+    '<div class="field"><label for="f-wks">Weeks per year</label>' +
+      '<input class="input" id="f-wks" type="text" inputmode="decimal" data-field="draft.weeksPerYear" value="' +
+      esc(d.weeksPerYear || "") + '" placeholder="e.g. 10"></div>' +
+  "</div>" +
+  '<span class="hint" style="margin-top:-8px">Sustained effort counts — but so does one big win.</span>' +
+  '<div class="grid-2">' +
+    '<div class="field"><label for="f-start">Start date <span class="muted" style="font-weight:600">— optional</span></label>' +
+      '<input class="input" id="f-start" type="date" data-field="draft.startDate" value="' + esc(d.startDate || "") + '"></div>' +
+    '<div class="field"><label for="f-end">End date <span class="muted" style="font-weight:600">— optional</span></label>' +
+      '<input class="input" id="f-end" type="date" data-field="draft.endDate" value="' + esc(d.endDate || "") + '"></div>' +
+  "</div>" +
+  '<div class="field"><label for="f-desc">Description</label>' +
+    '<textarea class="textarea" id="f-desc" maxlength="180" data-field="draft.description" placeholder="What did you actually do? One or two sentences.">' +
+    esc(d.description || "") + "</textarea>" +
+    '<span class="counter" id="desc-counter">' + (d.description || "").length + "/150</span></div>" +
+  '<div class="field"><label for="f-proof">Proof <span class="muted" style="font-weight:600">— optional</span></label>' +
+    '<input class="input" id="f-proof" type="file" data-action="proof-file" style="padding-top:11px">' +
+    (d.proofFile ? '<span class="hint" id="proof-name">Attached: ' + esc(d.proofFile) + ' <button class="link-btn" style="min-height:auto;font-size:12.5px" data-action="clear-proof">Remove</button></span>'
+      : '<span class="hint" id="proof-name">Certificates give a small honesty bonus — we store the file name only, never the file.</span>') +
+  "</div>" +
+  '<label class="consent" style="background:var(--bg)">' +
+    '<input type="checkbox" data-field="draft.themed"' + (d.themed ? " checked" : "") + ">" +
+    "<span>This connects to my intended major (" + esc(state.student.major || "not chosen yet") + ").</span></label>";
+
+  return html;
+}
+
+function resultOptions(type){
+  if (type === "research") return [
+    { id:"participation", label:"Assisted" },
+    { id:"finalist", label:"Led it" },
+    { id:"winner", label:"Published / presented" }
+  ];
+  if (type === "project") return [
+    { id:"participation", label:"Draft stage" },
+    { id:"finalist", label:"Built & working" },
+    { id:"winner", label:"In use by others" }
+  ];
+  return [
+    { id:"participation", label:"Participation" },
+    { id:"finalist", label:"Finalist / top 10%" },
+    { id:"winner", label:"Winner / medal" }
+  ];
+}
+
+function validateDraft(d){
+  var ok = true;
+  var errName = document.getElementById("err-name");
+  var errType = document.getElementById("err-type");
+  var errScore = document.getElementById("err-score");
+  if (errName) errName.hidden = true;
+  if (errType) errType.hidden = true;
+  if (errScore) errScore.hidden = true;
+  var nameInput = document.getElementById("f-name");
+  if (nameInput) nameInput.classList.remove("bad");
+  var scoreInput = document.getElementById("f-score");
+  if (scoreInput) scoreInput.classList.remove("bad");
+
+  if (!d.type){
+    if (errType) errType.hidden = false;
+    ok = false;
+  }
+  if (!d.name || !d.name.trim()){
+    if (errName){ errName.hidden = false; }
+    if (nameInput) nameInput.classList.add("bad");
+    ok = false;
+  }
+  if (d.type === "test_score" && (d.scoreValue === "" || d.scoreValue === null || d.scoreValue === undefined)){
+    if (errScore) errScore.hidden = false;
+    if (scoreInput) scoreInput.classList.add("bad");
+    ok = false;
+  }
+  return ok;
+}
+/* ------------------------------------------------------------
+   VIEW — Ivy chances
+   ------------------------------------------------------------ */
+function fitDots(fit){
+  var dots = "";
+  for (var i = 1; i <= 5; i++) dots += '<i class="' + (i <= fit ? "on" : "") + '"></i>';
+  return '<span class="dots" role="img" aria-label="Fit ' + fit + ' out of 5">' + dots + "</span>";
+}
+
+function viewChances(sortMode){
+  var rows = computeUniversities();
+  if (sortMode !== "az"){
+    // default = ranked for me (already sorted by fit)
+  } else {
+    rows = rows.slice().sort(function(a, b){ return a.name.localeCompare(b.name); });
+  }
+  var ranked = sortMode !== "az";
+
+  var list = rows.map(function(u, i){
+    var rank = ranked ? u.rank : i + 1;
+    var leverMeta = CONFIG.pillarMeta[u.lever];
+    return '<a class="uni-row" href="#/university/' + u.id + '">' +
+      '<span class="uni-rank">' + rank + "</span>" +
+      '<span class="uni-main"><h4>' + esc(u.name) + "</h4>" +
+        '<span class="uni-sub">Biggest lever: ' + esc(leverMeta ? leverMeta.label : "—") + "</span></span>" +
+      '<span style="display:flex;flex-direction:column;align-items:flex-end;gap:7px">' +
+        bandChip(u.fit) + fitDots(u.fit) + "</span>" +
+    "</a>";
+  }).join("");
+
+  return '<div class="stack-lg">' +
+    '<div class="page-head"><div class="grow">' +
+      '<h1 class="h1">Your Ivy chances</h1>' +
+      '<p class="muted" style="margin-top:6px">All eight, compared against your latest profile.</p>' +
+    "</div></div>" +
+    '<div class="seg" role="group" aria-label="Sort universities">' +
+      '<button data-action="chances-sort" data-sort="ranked" aria-pressed="' + ranked + '">Ranked for me</button>' +
+      '<button data-action="chances-sort" data-sort="az" aria-pressed="' + !ranked + '">A–Z</button>' +
+    "</div>" +
+    '<div class="stack" style="gap:10px">' + list + "</div>" +
+    datesCardHtml(null, { milestonesOnly:true, title:"Application deadlines, live" }) +
+    '<div class="disclaimer"><b>Bands are estimates based on your profile.</b> Ivy admissions are holistic and unpredictable — treat every Ivy as a reach and build a balanced list. We never show admission percentages, because no honest model can predict them from profile data alone.</div>' +
+    '<div class="card"><h3 class="h3">What this score can\'t see</h3>' +
+      '<ul class="honest-list" style="margin-top:12px">' +
+      ["Your essays and personal statement",
+       "Teacher and counsellor recommendations",
+       "Your interview",
+       "Hooks like athletic recruitment, legacy or first-generation status",
+       "Which round you apply in — Early Decision/Action vs Regular",
+       "What that class needs in a given year",
+       "For applicants from India: the international pool, and whether the school is need-blind for internationals — which changes real odds a lot"
+      ].map(function(t){ return "<li>" + ic("info","ic-sm") + "<span>" + esc(t) + "</span></li>"; }).join("") +
+      "</ul></div>" +
+  "</div>";
+}
+
+/* ------------------------------------------------------------
+   VIEW — University detail
+   ------------------------------------------------------------ */
+function pillarAction(pillar){
+  var map = {
+    academics:{ title:"Add your latest grades and list your advanced courses", hash:"#/profile/academics" },
+    tests:{ title:"Take a practice SAT or ACT and log the score", hash:"#/add?type=test_score" },
+    activities:{ title:"Take on a leadership role in one activity", hash:"#/add?type=club" },
+    awards:{ title:"Enter one competition above school level", hash:"#/add?type=competition" },
+    projects:{ title:"Start one project you can finish and show", hash:"#/add?type=project" }
+  };
+  return map[pillar] || map.activities;
+}
+
+function viewUniversity(id){
+  var rows = computeUniversities();
+  var row = rows.filter(function(r){ return r.id === id; })[0];
+  if (!row) return viewNotFound();
+  var uni = row.uni;
+  var profile = computeStrength();
+  var eff = emphasisFor(uni, profile.pillars);
+
+  // strengths: real ones only — never call a 0% pillar a strength
+  var scored = CONFIG.pillarOrder.filter(function(p){
+    return profile.pillars[p] !== null && profile.pillars[p] !== undefined;
+  });
+  var strong = scored.filter(function(p){ return profile.pillars[p] >= 40; })
+    .sort(function(a, b){
+      return (profile.pillars[b] * eff[b]) - (profile.pillars[a] * eff[a]);
+    });
+  var byGap = scored.slice().sort(function(a, b){
+    return (eff[b] * (100 - profile.pillars[b])) - (eff[a] * (100 - profile.pillars[a]));
+  });
+
+  var strengths = strong.slice(0, 2).map(function(p){
+    return "<li>" + ic("check","ic-sm") + "<span><b>" + esc(CONFIG.pillarMeta[p].label) + "</b> at " +
+      Math.round(profile.pillars[p]) + "% — " + esc(strengthPhrase(p, profile.pillars[p])) + "</span></li>";
+  }).join("");
+  if (!strengths){
+    strengths = '<li>' + ic("info","ic-sm") +
+      "<span>Nothing is scoring high enough to call a strength yet — your grades come closest. Add one activity or award to build the second one.</span></li>";
+  } else if (strong.length < 2){
+    strengths += '<li>' + ic("info","ic-sm") +
+      "<span>Only one pillar is really working so far — a second strength makes your list read as a pattern, not a one-off.</span></li>";
+  }
+
+  var gaps = byGap.slice(0, 2).map(function(p, i){
+    return "<li>" + ic("spark","ic-sm") + "<span><b>" + esc(CONFIG.pillarMeta[p].label) + "</b> at " +
+      Math.round(profile.pillars[p]) + "% — " + esc(gapPhrase(p, profile.pillars[p], i)) + "</span></li>";
+  }).join("") || '<li>' + ic("info","ic-sm") + "<span>No major gaps — keep deepening your strongest pillar.</span></li>";
+
+  var actionPillars = byGap.slice(0, 2);
+  if (actionPillars.length < 2){
+    actionPillars = scored.slice().sort(function(a, b){ return (eff[b] || 0) - (eff[a] || 0); }).slice(0, 2);
+  }
+  var actions = actionPillars.map(function(p){
+    var a = pillarAction(p);
+    return '<a class="act-item" href="' + a.hash + '"><span class="grow">' + esc(a.title) + "</span>" + ic("chev","ic-sm") + "</a>";
+  });
+  actions.push('<a class="act-item" href="#/roadmap"><span class="grow">See all roadmap tasks for your weakest pillars</span>' + ic("chev","ic-sm") + "</a>");
+
+  var why = row.fit >= 4
+    ? "Your profile reaches " + row.fit + " of 5 — <b>Reach</b> territory. You're in range on what " + uni.name +
+      " seems to weigh most. It's still a reach: admissions readers see essays, recommendations and context that this app never does."
+    : "Your profile sits at " + row.fit + " of 5 — <b>High reach</b> right now. " + uni.name +
+      " weights what's currently your lightest areas most heavily, so those are the moves that matter.";
+
+  var emphasisBars = CONFIG.pillarOrder.map(function(p){
+    var notYet = profile.pillars[p] === null || profile.pillars[p] === undefined;
+    var pct = notYet ? 0 : Math.round((eff[p] || 0) * 100);
+    return '<div class="bar-row"><div class="bar-label"><span>' + esc(CONFIG.pillarMeta[p].label) +
+      '</span><span>' + (notYet ? "Not scored yet" : pct + "%") + "</span></div>" +
+      '<div class="bar"><i style="width:' + pct + '%"></i></div></div>';
+  }).join("");
+
+  return '<div class="page-head">' +
+      '<a class="icon-btn" href="#/chances" aria-label="Back to chances">' + ic("back") + "</a>" +
+      '<div class="grow"><h1 class="h1">' + esc(uni.name) + "</h1>" +
+      '<div class="row" style="margin-top:8px;gap:8px">' + bandChip(row.fit) + fitDots(row.fit) +
+      '<span class="chip chip-grey">Rank #' + row.rank + "</span></div></div>" +
+    "</div>" +
+    '<div class="stack-lg">' +
+      '<div class="card" id="uni-live" data-uni="' + uni.id + '">' +
+        '<div class="row-between"><h3 class="h3">About ' + esc(uni.name) + "</h3></div>" +
+        (function(){
+          var cached = wikiCacheGet(uni);
+          if (cached) return uniLiveInner(uni, cached) + uniLiveSrc(cached, false);
+          return '<div class="uni-live-body"><div class="uni-live-text">' + esc(uni.blurb) +
+            '<div class="skeleton"></div><div class="skeleton w60"></div></div></div>' +
+            '<div class="uni-live-src" id="uni-live-src">' +
+            '<span class="live-dot"><i></i>Fetching live summary from Wikipedia…</span></div>';
+        })() +
+      "</div>" +
+
+      '<div class="why-card"><h4>Why this band</h4><p>' + why + "</p>" +
+        '<p style="margin-top:10px;font-size:13.5px"><b>Biggest lever: ' +
+        esc(CONFIG.pillarMeta[row.lever] ? CONFIG.pillarMeta[row.lever].label : "—") +
+        "</b> — a realistic push there moves your fit here more than anything else.</p></div>" +
+
+      uniDeadlinesHtml() +
+
+      '<div class="grid-2">' +
+        '<div class="card"><h3 class="h3">Your top 2 strengths</h3>' +
+          '<ul class="strength-list" style="margin-top:8px">' + strengths + "</ul></div>" +
+        '<div class="card"><h3 class="h3">Your top 2 gaps</h3>' +
+          '<ul class="gap-list" style="margin-top:8px">' + gaps + "</ul></div>" +
+      "</div>" +
+
+      '<div class="stack"><h2 class="h2">3 moves that would most improve your fit</h2>' +
+        '<div class="stack" style="gap:10px">' + actions.join("") + "</div></div>" +
+
+      '<div class="card"><h3 class="h3">What ' + esc(uni.name) + ' seems to weigh</h3>' +
+        '<div class="stack" style="gap:12px;margin-top:14px">' + emphasisBars + "</div>" +
+        '<p class="tiny muted" style="margin-top:14px"><b>Placeholder weights.</b> Universities don\'t publish these numbers. ' +
+        'Ours start from each school\'s Common Data Set factor rankings plus counsellor experience, and they live in an editable config so the Scholars Abroad team can correct them as evidence comes in.</p></div>' +
+
+      '<div class="disclaimer">' + esc(uni.intlNote) + " <b>This app deliberately does not hard-code fast-changing rules.</b></div>" +
+      '<div class="disclaimer"><b>Bands are estimates based on your profile.</b> Ivy admissions are holistic and unpredictable — treat every Ivy as a reach and build a balanced list.</div>' +
+    "</div>";
+}
+
+function strengthPhrase(p, s){
+  if (p === "academics") return s >= 70 ? "well above what they expect" : "a solid base to build on";
+  if (p === "tests") return s >= 75 ? "a competitive score" : "a workable starting score";
+  if (s >= 70) return "genuinely deep for your grade";
+  if (s >= 50) return "a real strength in your list";
+  return "your best-scoring pillar right now";
+}
+function gapPhrase(p, s){
+  var specific = {
+    academics: s < 40 ? "your grades are the fastest fix — add your latest result and advanced courses"
+      : "good, but it's the heaviest slice of this school's weighting — keep it rising",
+    tests: s < 40 ? "not logged yet — one practice SAT/ACT is the fastest fix"
+      : "workable, but a retake would lift this school's fit the most",
+    activities: s < 40 ? "your list is thin here — take on one bigger role in something you already do"
+      : "building — depth in one activity would push this higher",
+    awards: s < 40 ? "few results logged — enter one competition above school level"
+      : "solid — a national-level result would move this school's fit",
+    projects: s < 40 ? "nothing substantial built yet — start one small project you can show"
+      : "building — one deeper, shipped project would strengthen this"
+  };
+  var base = specific[p] || (s < 40 ? "the lightest part of your profile right now" : "room to grow");
+  return base;
+}
+
+/* ------------------------------------------------------------
+   VIEW — Roadmap
+   ------------------------------------------------------------ */
+function viewRoadmap(periodId){
+  var rm = generateRoadmap();
+  var grade = state.student.grade;
+  if (!periodId){
+    periodId = (grade === "12" || grade === "ug") ? "application-year" : "this-term";
+  }
+  var available = PERIODS.filter(function(p){ return rm.byPeriod[p.id].length > 0; });
+  if (!available.some(function(p){ return p.id === periodId; }) && available.length){
+    periodId = available[0].id;
+  }
+
+  var tabs = PERIODS.map(function(p){
+    var n = rm.byPeriod[p.id].length;
+    return '<button data-action="roadmap-period" data-period="' + p.id + '" aria-pressed="' +
+      (periodId === p.id) + '">' + esc(p.label) + (n ? " (" + n + ")" : "") + "</button>";
+  }).join("");
+
+  var tasks = rm.byPeriod[periodId] || [];
+  var doneCount = tasks.filter(function(t){ return t.done; }).length;
+  var pct = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0;
+
+  var listHtml;
+  if (!tasks.length){
+    listHtml = '<div class="empty"><span class="pillar-icon">' + ic("map") + "</span>" +
+      "<h4>Nothing scheduled here for your grade</h4>" +
+      "<p>Try another period tab — or enjoy the quiet. Your profile keeps counting what you've already done.</p></div>";
+  } else {
+    listHtml = tasks.map(function(t){
+      var meta = CONFIG.pillarMeta[t.pillar];
+      var label = meta ? meta.label : (t.pillar === "essays" ? "Essays" : "Planning");
+      var badge = t.unscored || t.points <= 0
+        ? '<span class="chip chip-na">Doesn\'t change score — still essential</span>'
+        : '<span class="chip chip-points">+' + t.points + " points</span>";
+      return '<li class="task' + (t.done ? " done" : "") + '">' +
+        '<button class="task-toggle" data-action="toggle-task" data-id="' + t.id +
+          '" aria-pressed="' + t.done + '">' +
+          '<span class="task-check">' + ic("check","ic-sm") + "</span>" +
+          '<span class="task-body"><h4>' + esc(t.title) + "</h4>" +
+            '<span class="task-meta"><span class="chip chip-grey">' + esc(label) + "</span>" +
+            badge +
+            '<span class="tiny muted" style="display:inline-flex;align-items:center;gap:4px">' +
+            ic("clock","ic-sm") + esc(t.effort) + "</span></span>" +
+          "</span></button></li>";
+    }).join("");
+    listHtml = '<ul class="stack" style="gap:10px">' + listHtml + "</ul>";
+  }
+
+  var weaknessNote = rm.weakness.length
+    ? '<div class="disclaimer">Built from your grade (' +
+      esc(grade === "ug" ? "UG" : "Grade " + grade) + "), your weakest pillars (" +
+      esc(rm.weakness.map(function(p){ return CONFIG.pillarMeta[p].label; }).join(", ")) +
+      ") and your intended major. Every task shows the points it's worth.</div>"
+    : "";
+
+  return '<div class="stack-lg">' +
+    '<div class="page-head"><div class="grow">' +
+      '<h1 class="h1">Your roadmap</h1>' +
+      '<p class="muted" style="margin-top:6px">Small steps, in the right order for your grade.</p>' +
+    "</div></div>" +
+    '<div class="tabs" role="group" aria-label="Timeline period">' + tabs + "</div>" +
+    datesCardHtml(6, { title:"Deadlines that matter" }) +
+    '<div class="card"><div class="row-between"><span class="label">' + esc((PERIODS.filter(function(p){ return p.id === periodId; })[0] || {}).label || "") +
+      '</span><span class="small muted">' + doneCount + " of " + tasks.length + " done</span></div>" +
+      '<div class="progress" style="margin-top:10px"><i style="width:' + pct + '%"></i></div>' +
+      (pct === 100 && tasks.length ? '<p class="small" style="margin-top:10px;color:var(--primary);font-weight:700">All done — nice work.</p>' : "") +
+    "</div>" +
+    listHtml +
+    weaknessNote +
+    '<div class="card" style="text-align:center;background:var(--tint);border:none">' +
+      '<h3 class="h3">Want a human to check this?</h3>' +
+      '<p class="small" style="margin-top:6px;color:#26564A">A Scholars Abroad counsellor can review your list and tell you what actually matters for your grade.</p>' +
+      '<button class="btn btn-primary" style="margin-top:14px" data-action="open-counsellor">Talk to a counsellor</button>' +
+    "</div>" +
+  "</div>";
+}
+
+/* ------------------------------------------------------------
+   VIEW — Settings
+   ------------------------------------------------------------ */
+function viewSettings(){
+  var s = state.student;
+  var grades = CONFIG.grades.map(function(g){
+    return '<option value="' + g.id + '"' + (s.grade === g.id ? " selected" : "") + ">" +
+      (g.id === "ug" ? "Undergraduate" : "Grade " + g.label) + "</option>";
+  }).join("");
+  var majors = CONFIG.majors.map(function(m){
+    return '<option value="' + esc(m) + '"' + (s.major === m ? " selected" : "") + ">" + esc(m) + "</option>";
+  }).join("");
+
+  return '<div class="stack-lg">' +
+    '<div class="page-head"><div class="grow">' +
+      '<h1 class="h1">Settings</h1>' +
+      '<p class="muted" style="margin-top:6px">Your details, your data, your call.</p>' +
+    "</div></div>" +
+
+    '<div class="card"><h2 class="h3">Your details</h2>' +
+      '<div class="stack" style="margin-top:16px">' +
+        '<div class="field"><label for="st-name">First name</label>' +
+          '<input class="input" id="st-name" type="text" data-field="student.name" value="' + esc(s.name) + '" maxlength="40"></div>' +
+        '<div class="grid-2">' +
+          '<div class="field"><label for="st-grade">Grade</label>' +
+            '<select class="select" id="st-grade" data-field="student.grade">' + grades + "</select></div>" +
+          '<div class="field"><label for="st-major">Intended major</label>' +
+            '<select class="select" id="st-major" data-field="student.major"><option value="">Not chosen yet</option>' +
+            majors + "</select></div>" +
+        "</div>" +
+        '<p class="tiny muted">Changes save as you go.</p>' +
+      "</div></div>" +
+
+    '<div class="card"><h2 class="h3">Your data</h2>' +
+      '<p class="small muted" style="margin-top:8px">Everything lives in this browser only' +
+        (storageOK ? "" : " — <b>note: storage is blocked in this browser, so data lasts only until you close the tab</b>") +
+        ". Nothing is uploaded anywhere.</p>" +
+      '<div class="row" style="margin-top:16px;flex-wrap:wrap;gap:10px">' +
+        '<button class="btn btn-ghost" data-action="export-data">' + ic("download","ic-sm") + "Export as JSON</button>" +
+        '<a class="btn btn-ghost" href="#/onboarding">' + ic("refresh","ic-sm") + "Run setup again</a>" +
+      "</div></div>" +
+
+    liveDataCard() +
+
+    '<div class="card danger-zone"><h2 class="h3">Reset everything</h2>' +
+      '<p class="small muted" style="margin-top:8px">Deletes your profile, entries and roadmap progress from this device. It can\'t be undone.</p>' +
+      '<button class="btn btn-danger" style="margin-top:16px" data-action="reset-data">Reset all data</button>' +
+    "</div>" +
+
+    '<div class="card"><h2 class="h3">How scoring works</h2>' +
+      '<p class="small muted" style="margin-top:8px;line-height:1.6">Your profile strength is the weighted average of five pillars — Academics 30%, Activities 25%, Test Scores 15%, Awards 15%, Projects 15% — adjusted for your grade so younger students aren\'t penalised for missing test scores. Within each pillar, achievements are weighted by level, result, leadership role, sustained hours and recency, with diminishing returns so depth beats a long list. University fit uses each school\'s emphasis profile — placeholder weights until the Scholars Abroad team calibrates them against real outcomes.</p>' +
+      '<p class="small muted" style="margin-top:10px"><b style="color:var(--ink)">No admission percentages, ever.</b> When a school admits 4–7% of applicants, honesty means bands, not false precision.</p>' +
+    "</div>" +
+  "</div>";
+}
+/* ------------------------------------------------------------
+   Shared helpers for flow control
+   ------------------------------------------------------------ */
+var prevRoute = null;
+
+function renderKeepFocus(sel){
+  render();
+  if (sel){
+    var el = document.querySelector(sel);
+    if (el && el.focus) el.focus();
+  }
+}
+
+function recordHistory(){
+  var score = computeStrength().score;
+  var h = state.history;
+  if (!h.length || Date.now() - h[h.length - 1].t > 12 * 3600 * 1000){
+    h.push({ t: Date.now(), score: score });
+  } else {
+    h[h.length - 1] = { t: Date.now(), score: score };
+  }
+  if (h.length > 60) h.splice(0, h.length - 60);
+}
+
+function updateCounter(el){
+  var c = document.getElementById("desc-counter");
+  if (!c) return;
+  var n = el.value.length;
+  c.textContent = n + "/150";
+  c.classList.toggle("over", n > 150);
+}
+
+function updateAcadScore(){
+  var b = document.getElementById("acad-live-score");
+  if (b){
+    var s = computePillars().academics;
+    b.textContent = s === null ? "not scored yet" : Math.round(s) + "/100";
+  }
+  var o = document.getElementById("acad-overall");
+  if (o) o.textContent = computeStrength().score + "/100";
+}
+function updateObLive(){
+  var box = document.getElementById("ob-live");
+  if (!box) return;
+  var s = state.student;
+  var hasGrades = (s.current || "").trim() !== "";
+  if (!hasGrades && !(s.sat || "").trim() && !(s.act || "").trim() &&
+      !(s.ib || "").trim() && !(s.ap || "").trim()){
+    box.innerHTML = '<h4>Live preview</h4><p class="impact-main">Your latest result goes here</p>' +
+      '<p class="impact-sub">Type it in and we\'ll project your academics score and overall profile strength instantly — nothing is saved until you finish setup.</p>';
+    return;
+  }
+  var proj = onboardingProjection();
+  var acad = proj.pillars.academics;
+  var tests = proj.pillars.tests;
+  box.innerHTML =
+    '<h4>Live preview</h4>' +
+    '<p class="impact-main">Projected profile strength: ' + proj.score + "/100</p>" +
+    '<p class="impact-sub">Academics ' + (acad === null ? "not scored yet" : Math.round(acad) + "/100") +
+      " · Test scores " + (tests === null ? "not added yet" : Math.round(tests) + "/100") +
+      " · " + esc(proj.label) + ". Recalculates as you type.</p>";
+}
+
+function goPrev(){
+  go(prevRoute && prevRoute.indexOf("/add") !== 0 && prevRoute.indexOf("/edit") !== 0
+    ? prevRoute : "#/profile");
+}
+
+function findTask(id){
+  return ROADMAP_TASKS.filter(function(t){ return t.id === id; })[0] || null;
+}
+
+function taskHash(task){
+  if (task.action.type) return task.action.hash + (task.action.hash.indexOf("?") >= 0 ? "&" : "?") + "type=" + task.action.type;
+  return task.action.hash;
+}
+
+/* ------------------------------------------------------------
+   Click delegation
+   ------------------------------------------------------------ */
+function onClick(e){
+  var el = e.target.closest ? e.target.closest("[data-action]") : null;
+  if (!el) return;
+  var action = el.getAttribute("data-action");
+
+  switch (action){
+    /* ---- onboarding ---- */
+    case "pick-grade":
+      state.student.grade = el.getAttribute("data-grade");
+      saveState();
+      renderKeepFocus('[data-action="pick-grade"][data-grade="' + state.student.grade + '"]');
+      break;
+
+    case "pick-major":
+      state.student.major = el.getAttribute("data-major");
+      saveState();
+      renderKeepFocus('[data-action="pick-major"][data-major="' + state.student.major.replace(/"/g, "&quot;") + '"]');
+      break;
+
+    case "pick-scale":
+      state.student.scale = el.getAttribute("data-scale");
+      state.academics.scale = state.student.scale;
+      saveState();
+      renderKeepFocus('[data-action="pick-scale"][data-scale="' + state.student.scale + '"]');
+      break;
+
+    case "ob-next":
+      state.obStep = Math.min(3, (state.obStep || 1) + 1);
+      saveState(); render();
+      break;
+
+    case "ob-back":
+      state.obStep = Math.max(1, (state.obStep || 1) - 1);
+      saveState(); render();
+      break;
+
+    case "ob-skip":
+      state.obStep = 3;
+      saveState(); render();
+      toast("Skipping to the last step — just the essentials left.");
+      break;
+
+    case "ob-demo":
+      loadDemo();
+      go("#/home");
+      toast("Demo loaded — this is Aarav, Grade 10. Reset anytime in Settings.");
+      break;
+
+    case "ob-finish":
+      if (!state.consent){
+        toast("A parent or guardian needs to agree before we save anything.");
+        var box = document.querySelector(".consent input");
+        if (box) box.focus();
+        break;
+      }
+      finishOnboarding();
+      break;
+
+    /* ---- home ---- */
+    case "move-do": {
+      var task = findTask(el.getAttribute("data-id"));
+      if (task) go(taskHash(task));
+      break;
+    }
+    case "move-later":
+      state.deferredMove = { id: el.getAttribute("data-id"), until: Date.now() + 7 * 24 * 3600 * 1000 };
+      saveState(); render();
+      toast("No problem — we'll bring you a different move for the next week.");
+      break;
+
+    /* ---- entries ---- */
+    case "edit-entry":
+      go("#/edit/" + el.getAttribute("data-id"));
+      break;
+
+    case "delete-entry": {
+      var id = el.getAttribute("data-id");
+      var entry = state.entries.filter(function(x){ return x.id === id; })[0];
+      if (!entry) break;
+      openModal(
+        '<h3>Delete this entry?</h3>' +
+        '<p class="muted" style="margin-top:10px">“' + esc(entry.name) + '” will be removed from your profile. This can\'t be undone.</p>' +
+        '<div class="modal-actions">' +
+          '<button class="btn btn-ghost" data-action="close-modal">Keep it</button>' +
+          '<button class="btn btn-danger" data-action="confirm-delete" data-id="' + id + '">Delete</button>' +
+        "</div>"
+      );
+      break;
+    }
+    case "confirm-delete": {
+      var did = el.getAttribute("data-id");
+      var beforeS = computeStrength().score;
+      state.entries = state.entries.filter(function(x){ return x.id !== did; });
+      saveState();
+      var afterS = computeStrength().score;
+      recordHistory();
+      closeModal(); render();
+      var d2 = afterS - beforeS;
+      toast(d2 < 0 ? "Entry removed — score adjusted to " + afterS + "." : "Entry removed.");
+      break;
+    }
+
+    /* ---- entry form ---- */
+    case "pick-type":
+      state.draft.type = el.getAttribute("data-type");
+      if (!state.draft.result && RESULT_TYPES.indexOf(state.draft.type) !== -1){
+        state.draft.result = "participation";
+      }
+      saveState();
+      renderKeepFocus('[data-action="pick-type"][data-type="' + state.draft.type + '"]');
+      break;
+
+    case "pick-level":
+      state.draft.level = el.getAttribute("data-level");
+      saveState();
+      renderKeepFocus('[data-action="pick-level"][data-level="' + state.draft.level + '"]');
+      break;
+
+    case "pick-result":
+      state.draft.result = el.getAttribute("data-result");
+      saveState();
+      renderKeepFocus('[data-action="pick-result"][data-result="' + state.draft.result + '"]');
+      break;
+
+    case "pick-role":
+      state.draft.role = el.getAttribute("data-role");
+      saveState();
+      renderKeepFocus('[data-action="pick-role"][data-role="' + state.draft.role + '"]');
+      break;
+
+    case "pick-test":
+      state.draft.testName = el.getAttribute("data-test");
+      saveState();
+      renderKeepFocus('[data-action="pick-test"][data-test="' + state.draft.testName + '"]');
+      break;
+
+    case "clear-proof":
+      state.draft.proofFile = "";
+      saveState(); render();
+      break;
+
+    case "save-entry":
+      saveEntry();
+      break;
+
+    case "form-back":
+      goPrev();
+      break;
+
+    /* ---- chances ---- */
+    case "chances-sort":
+      go("#/chances?sort=" + el.getAttribute("data-sort"));
+      break;
+
+    /* ---- roadmap ---- */
+    case "roadmap-period":
+      go("#/roadmap?period=" + el.getAttribute("data-period"));
+      break;
+
+    case "toggle-task": {
+      var tid = el.getAttribute("data-id");
+      var t = findTask(tid);
+      var wasDone = !!state.roadmapDone[tid];
+      if (wasDone) delete state.roadmapDone[tid];
+      else state.roadmapDone[tid] = Date.now();
+      saveState(); render();
+      if (!wasDone && t){
+        toast(t.unscored || t.points <= 0
+          ? "Ticked off — this one doesn't move your score, but it matters."
+          : "Nice work — that task is worth about +" + t.points + " once you log it.");
+      }
+      break;
+    }
+
+    case "open-counsellor":
+      openModal(
+        '<h3>Talk to a counsellor</h3>' +
+        '<p class="muted small" style="margin-top:8px">Tell us where you are and we\'ll get back to you.</p>' +
+        '<div class="stack">' +
+          '<div class="field"><label for="cn-name">Your name</label>' +
+            '<input class="input" id="cn-name" type="text" placeholder="e.g. Aarav" autocomplete="name"></div>' +
+          '<div class="field"><label for="cn-contact">Email or phone</label>' +
+            '<input class="input" id="cn-contact" type="text" placeholder="So we can reply" autocomplete="email"></div>' +
+          '<div class="field"><label for="cn-msg">What do you need help with? <span class="muted" style="font-weight:600">— optional</span></label>' +
+            '<textarea class="textarea" id="cn-msg" placeholder="e.g. I\'m in Grade 10 and unsure how to pick competitions."></textarea></div>' +
+          '<p class="err" id="err-cn" hidden>Add your name and a way to reach you.</p>' +
+        "</div>" +
+        '<div class="modal-actions">' +
+          '<button class="btn btn-ghost" data-action="close-modal">Cancel</button>' +
+          '<button class="btn btn-primary" data-action="send-counsellor">Send</button>' +
+        "</div>"
+      );
+      break;
+
+    case "send-counsellor": {
+      var n = (document.getElementById("cn-name") || {}).value || "";
+      var c = (document.getElementById("cn-contact") || {}).value || "";
+      if (!n.trim() || !c.trim()){
+        var er = document.getElementById("err-cn");
+        if (er) er.hidden = false;
+        break;
+      }
+      openModal(
+        '<div style="text-align:center;padding:8px 0">' +
+          '<span class="pillar-icon" style="margin:0 auto 14px">' + ic("check") + "</span>" +
+          "<h3>Message sent</h3>" +
+          '<p class="muted" style="margin-top:10px">Thanks, ' + esc(n.trim().split(" ")[0]) +
+          " — a Scholars Abroad counsellor will reply within 2 working days.</p>" +
+          '<button class="btn btn-primary btn-block" style="margin-top:20px" data-action="close-modal">Done</button>' +
+        "</div>"
+      );
+      break;
+    }
+
+    /* ---- settings ---- */
+    case "export-data": {
+      try {
+        var payload = JSON.stringify({
+          app: "Scholars Abroad – Ivy Profile Builder",
+          version: CONFIG.version,
+          exportedAt: new Date().toISOString(),
+          note: "All data is stored locally on the device. Emphasis weights in CONFIG are placeholders pending calibration.",
+          data: state
+        }, null, 2);
+        var blob = new Blob([payload], { type: "application/json" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "scholars-abroad-profile.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+        toast("Exported — check your downloads.");
+      } catch (err) {
+        toast("Couldn't export in this browser.");
+      }
+      break;
+    }
+
+    case "refresh-live":
+      CONFIG.universities.forEach(function(u){ storeDel(wikiKey(u)); });
+      render();
+      toast("Live summaries cleared — they'll refetch next time you open a school page.");
+      break;
+
+    case "chat-toggle":
+      toggleChat();
+      break;
+
+    case "chat-close":
+      closeChat();
+      break;
+
+    case "reset-data":
+      openModal(
+        '<h3>Reset everything?</h3>' +
+        '<p class="muted" style="margin-top:10px">This deletes your profile, all entries and your roadmap progress from this device. It can\'t be undone.</p>' +
+        '<div class="modal-actions">' +
+          '<button class="btn btn-ghost" data-action="close-modal">Keep my data</button>' +
+          '<button class="btn btn-danger" data-action="confirm-reset">Reset everything</button>' +
+        "</div>"
+      );
+      break;
+
+    case "confirm-reset":
+      storeDel(STORAGE_KEY);
+      state = defaultState();
+      prevRoute = null;
+      closeModal();
+      go("#/onboarding");
+      render();
+      toast("All cleared. Starting fresh.");
+      break;
+
+    /* ---- academics ---- */
+    case "acad-scale":
+      state.academics.scale = el.getAttribute("data-scale");
+      saveState();
+      renderKeepFocus('[data-action="acad-scale"][data-scale="' + state.academics.scale + '"]');
+      break;
+
+    /* ---- modal ---- */
+    case "close-modal":
+      closeModal();
+      break;
+
+    case "modal-backdrop":
+      if (e.target === el) closeModal();
+      break;
+  }
+}
+
+function finishOnboarding(){
+  var s = state.student;
+  state.academics = {
+    current: s.current || "",
+    scale: s.scale || "percentage",
+    previous: s.previous || "",
+    rigourTaken: s.rigourTaken || "",
+    rigourOffered: s.rigourOffered || ""
+  };
+  // Turn any test scores typed during onboarding into entries
+  [["sat","SAT"],["act","ACT"],["ib","IB"],["ap","AP"]].forEach(function(pair){
+    var val = (s[pair[0]] || "").trim();
+    if (!val) return;
+    var exists = state.entries.some(function(e){
+      return e.type === "test_score" && e.testName === pair[1];
+    });
+    if (exists) return;
+    state.entries.push({
+      id: uid(), type: "test_score", name: pair[1] + " score",
+      testName: pair[1], scoreValue: val,
+      level: "school", result: "", role: "member",
+      hoursPerWeek: "", weeksPerYear: "",
+      startDate: "", endDate: "",
+      description: "", proofFile: "", themed: false,
+      createdAt: Date.now()
+    });
+  });
+  state.onboarded = true;
+  state.obStep = 1;
+  saveState();
+  recordHistory();
+  go("#/home");
+  var strength = computeStrength().score;
+  toast("You're all set — profile strength " + strength + "/100. Add one achievement to move it.");
+}
+
+function saveEntry(){
+  var d = state.draft;
+  if (!d) { goPrev(); return; }
+  if (!validateDraft(d)){
+    toast("Just one small thing to fix before saving.");
+    return;
+  }
+  if (d.description && d.description.length > 150){
+    var counter = document.getElementById("desc-counter");
+    if (counter) counter.classList.add("over");
+    toast("Description is " + d.description.length + " characters — Common App allows 150.");
+    return;
+  }
+  var before = computeStrength().score;
+  var isNew = !d.id;
+  if (isNew){
+    d.id = uid();
+    d.createdAt = Date.now();
+    state.entries.push(JSON.parse(JSON.stringify(d)));
+  } else {
+    var idx = -1;
+    state.entries.forEach(function(x, i){ if (x.id === d.id) idx = i; });
+    if (idx >= 0) state.entries[idx] = JSON.parse(JSON.stringify(d));
+  }
+  state.draft = null;
+  saveState();
+  var after = computeStrength().score;
+  recordHistory();
+  var diff = after - before;
+  toast(isNew
+    ? (diff > 0 ? "Saved — profile strength +" + diff + ". Nice work." : "Saved.")
+    : "Changes saved — profile strength " + after + "/100.");
+  goPrev();
+}
+
+/* ------------------------------------------------------------
+   Field binding (typing never triggers a full re-render)
+   ------------------------------------------------------------ */
+function onField(e){
+  var el = e.target;
+  if (!el || !el.getAttribute) return;
+  var f = el.getAttribute("data-field");
+  if (!f) return;
+  if (el.type === "file"){
+    if (el.getAttribute("data-action") === "proof-file" && state.draft){
+      var file = el.files && el.files[0];
+      if (file){
+        state.draft.proofFile = file.name;
+        saveState(); render();
+        toast("Attached " + file.name + " — only the name is stored.");
+      }
+    }
+    return;
+  }
+  var val = el.type === "checkbox" ? el.checked : el.value;
+
+  if (f.indexOf("draft.") === 0){
+    if (!state.draft) return;
+    state.draft[f.slice(6)] = val;
+    if (f === "draft.name"){
+      el.classList.remove("bad");
+      var en = document.getElementById("err-name");
+      if (en) en.hidden = true;
+    }
+    if (f === "draft.scoreValue"){
+      el.classList.remove("bad");
+      var es = document.getElementById("err-score");
+      if (es) es.hidden = true;
+    }
+  } else if (f.indexOf("student.") === 0){
+    state.student[f.slice(8)] = val;
+    if (f === "student.scale") state.academics.scale = val;
+  } else if (f.indexOf("academics.") === 0){
+    state.academics[f.slice(10)] = val;
+  } else if (f === "consent"){
+    state.consent = val;
+  }
+  saveState();
+
+  if (el.id === "f-desc") updateCounter(el);
+  if (f.indexOf("draft.") === 0) updateImpact();
+  if (f.indexOf("academics.") === 0) updateAcadScore();
+  if (f.indexOf("student.") === 0) updateObLive();
+  if (f === "student.grade" && el.tagName === "SELECT") render();
+}
+
+/* ------------------------------------------------------------
+   SCHOLARAI CHAT — talks to the backend at /api/chat, which
+   holds the Groq key. The browser never sees the key.
+   ------------------------------------------------------------ */
+var chatHistory = [];
+var chatBusy = false;
+var chatWelcomed = false;
+
+function chatContext(){
+  if (!state.onboarded) return null;
+  try {
+    var p = computeStrength();
+    var rows = computeUniversities().slice(0, 3);
+    var move = nextBestMove();
+    return {
+      name: state.student.name || "",
+      grade: state.student.grade === "ug" ? "Undergraduate" : "Grade " + state.student.grade,
+      major: state.student.major || "",
+      score: p.score,
+      label: p.label,
+      pillars: CONFIG.pillarOrder.map(function(k){
+        var s = p.pillars[k];
+        return CONFIG.pillarMeta[k].label + ": " + (s === null ? "not yet" : Math.round(s) + "%");
+      }).join(", "),
+      topTargets: rows.map(function(r){ return r.name + " (fit " + r.fit + "/5)"; }).join(", "),
+      nextMove: move ? move.title : ""
+    };
+  } catch (e){ return null; }
+}
+function escChat(s){
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function mdInline(s){
+  return s
+    .replace(/`([^`]+)`/g, function(m, c){ return '<code class="chat-code">' + c + "</code>"; })
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+}
+
+function mdTableHtml(rows){
+  var cells = rows.map(function(r){
+    return r.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(function(c){ return c.trim(); });
+  });
+  var head = cells[0];
+  var body = cells.slice(1).filter(function(r){
+    return !r.every(function(c){ return /^:?-{2,}:?$/.test(c); });
+  });
+  var h = '<table class="chat-table"><thead><tr>';
+  head.forEach(function(c){ h += "<th>" + mdInline(escChat(c)) + "</th>"; });
+  h += "</tr></thead><tbody>";
+  body.forEach(function(r){
+    h += "<tr>";
+    r.forEach(function(c){ h += "<td>" + mdInline(escChat(c)) + "</td>"; });
+    h += "</tr>";
+  });
+  return h + "</tbody></table>";
+}
+function mdToHtml(text){
+  try {
+    var lines = String(text).split(/\r?\n/);
+    var out = [], i = 0;
+    while (i < lines.length){
+      var line = lines[i];
+      if (/^\s*\|.*\|\s*$/.test(line)){
+        var rows = [];
+        while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){ rows.push(lines[i]); i++; }
+        out.push(mdTableHtml(rows));
+        continue;
+      }
+      if (/^#{1,4}\s+/.test(line)){
+        out.push('<div class="chat-h">' + mdInline(escChat(line.replace(/^#{1,4}\s+/, ""))) + "</div>");
+        i++; continue;
+      }
+      if (/^\s*[-*•]\s+/.test(line)){
+        var items = [];
+        while (i < lines.length && /^\s*[-*•]\s+/.test(lines[i])){
+          items.push(mdInline(escChat(lines[i].replace(/^\s*[-*•]\s+/, ""))));
+          i++;
+        }
+        out.push('<ul class="chat-ul">' + items.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul>");
+        continue;
+      }
+      if (/^\s*\d+\.\s+/.test(line)){
+        var nums = [];
+        while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])){
+          nums.push(mdInline(escChat(lines[i].replace(/^\s*\d+\.\s+/, ""))));
+          i++;
+        }
+        out.push('<ol class="chat-ul">' + nums.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ol>");
+        continue;
+      }
+      if (line.trim() === ""){ i++; continue; }
+      var para = [line];
+      i++;
+      while (i < lines.length && lines[i].trim() !== "" &&
+             !/^\s*([-*•]\s+|\d+\.\s+|#{1,4}\s+|\|)/.test(lines[i])){
+        para.push(lines[i]); i++;
+      }
+      out.push("<p>" + mdInline(escChat(para.join(" "))) + "</p>");
+    }
+    return out.join("");
+  } catch (e){ return escChat(text); }
+}
+
+function chatEl(id){ return document.getElementById(id); }
+function chatScroll(){
+  var box = chatEl("chat-msgs");
+  if (box) box.scrollTop = box.scrollHeight;
+}
+function chatBubble(role, content){
+  var box = chatEl("chat-msgs");
+  if (!box) return null;
+  var el = document.createElement("div");
+  el.className = "chat-bubble " + (role === "user" ? "user" : "bot");
+  if (role === "user") el.textContent = content;
+  else el.innerHTML = mdToHtml(content);
+  box.appendChild(el);
+  chatScroll();
+  return el;
+}
+function chatTyping(on){
+  var box = chatEl("chat-msgs");
+  if (!box) return;
+  var old = box.querySelector(".chat-typing");
+  if (old) old.remove();
+  if (on){
+    var t = document.createElement("div");
+    t.className = "chat-typing";
+    t.innerHTML = "<i></i><i></i><i></i>";
+    t.setAttribute("aria-label", "ScholarAI is typing");
+    box.appendChild(t);
+    chatScroll();
+  }
+}
+function chatSetStatus(text, ok){
+  var el = chatEl("chat-status");
+  if (el) el.textContent = text;
+  var badge = chatEl("chat-badge");
+  if (badge){ badge.hidden = false; badge.className = "chat-badge" + (ok ? "" : " off"); }
+}
+async function chatHealth(){
+  try {
+    var res = await fetch("/api/health", { cache: "no-store" });
+    var h = await res.json();
+    if (h && h.chat) chatSetStatus("online · " + h.model, true);
+    else if (h) chatSetStatus("server up · chat key missing", false);
+    else chatSetStatus("offline", false);
+  } catch (e){
+    if (location.protocol === "file:"){
+      chatSetStatus("offline · run npm start", false);
+    } else {
+      chatSetStatus("offline", false);
+    }
+  }
+}
+function chatWelcome(){
+  if (chatWelcomed) return;
+  chatWelcomed = true;
+  var first = state.onboarded
+    ? "Hi — I'm **ScholarAI**, your study-abroad mentor. I can see your Scholars Abroad profile, so ask me anything: university shortlists, SOPs, scholarships, tests, visas or timelines. What's on your mind?"
+    : "Hi — I'm **ScholarAI**, your study-abroad mentor. Ask me about universities, countries, scholarships, SOPs, tests or visas — I'll keep answers practical and honest.";
+  chatBubble("bot", first);
+}
+function openChat(){
+  var panel = chatEl("chat-panel");
+  var fab = chatEl("chat-fab");
+  if (!panel) return;
+  panel.hidden = false;
+  if (fab) fab.setAttribute("aria-expanded", "true");
+  chatWelcome();
+  chatHealth();
+  var input = chatEl("chat-input");
+  if (input) input.focus();
+}
+function closeChat(){
+  var panel = chatEl("chat-panel");
+  var fab = chatEl("chat-fab");
+  if (panel) panel.hidden = true;
+  if (fab) fab.setAttribute("aria-expanded", "false");
+}
+function toggleChat(){
+  var panel = chatEl("chat-panel");
+  if (!panel) return;
+  if (panel.hidden) openChat(); else closeChat();
+}
+function chatFail(message){
+  chatBubble("bot", message);
+}
+async function chatSend(){
+  var input = chatEl("chat-input");
+  if (!input || chatBusy) return;
+  var text = input.value.trim();
+  if (!text) return;
+  if (text.length > 2000) text = text.slice(0, 2000);
+
+  chatBubble("user", text);
+  chatHistory.push({ role: "user", content: text });
+  input.value = "";
+  input.style.height = "auto";
+
+  chatBusy = true;
+  var send = chatEl("chat-send");
+  if (send) send.disabled = true;
+  chatTyping(true);
+
+  try {
+    var res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text,
+        context: chatContext(),
+        history: chatHistory.slice(0, -1).slice(-10)
+      })
+    });
+    var data = null;
+    try { data = await res.json(); } catch (e){ data = null; }
+    chatTyping(false);
+    if (!res.ok || !data || !data.reply){
+      var why = data && data.error ? data.error : "Request failed (" + res.status + ").";
+      chatFail(why);
+    } else {
+      chatBubble("bot", data.reply);
+      chatHistory.push({ role: "assistant", content: data.reply });
+    }
+  } catch (e){
+    chatTyping(false);
+    chatFail("I can't reach the app server. If you opened index.html directly (file://), stop it and run `npm start`, then open http://localhost:3000 — I'll come online there.");
+  } finally {
+    chatBusy = false;
+    if (send) send.disabled = false;
+    if (input) input.focus();
+    chatHealth();
+  }
+}
+function wireChat(){
+  var form = chatEl("chat-form");
+  var input = chatEl("chat-input");
+  if (form) form.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    chatSend();
+  });
+  if (input){
+    input.addEventListener("keydown", function(ev){
+      if (ev.key === "Enter" && !ev.shiftKey){
+        ev.preventDefault();
+        chatSend();
+      }
+    });
+    input.addEventListener("input", function(){
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 110) + "px";
+    });
+  }
+}
+
+/* ------------------------------------------------------------
+   INIT
+   ------------------------------------------------------------ */
+function init(){
+  app = document.getElementById("app");
+  loadState();
+
+  window.addEventListener("hashchange", function(){
+    var r = parseHash();
+    var route = r.parts[0] || (state.onboarded ? "home" : "onboarding");
+    if (route !== "add" && route !== "edit") prevRoute = location.hash;
+    render();
+  });
+  document.addEventListener("click", onClick);
+  document.addEventListener("input", onField);
+  document.addEventListener("change", onField);
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape"){
+      var panel = document.getElementById("chat-panel");
+      if (document.querySelector(".modal-backdrop")) closeModal();
+      else if (panel && !panel.hidden) closeChat();
+    }
+  });
+  wireChat();
+
+  if (!location.hash){
+    location.replace(state.onboarded ? "#/home" : "#/onboarding");
+  }
+  var r0 = parseHash();
+  var route0 = r0.parts[0] || (state.onboarded ? "home" : "onboarding");
+  if (route0 !== "add" && route0 !== "edit") prevRoute = location.hash;
+  render();
+
+  /* Real-time loops: ticking clock + countdown refresh. Cheap DOM
+     queries only; nothing runs when the elements aren't on screen. */
+  setInterval(tickClock, 1000);
+  setInterval(tickLive, 60000);
+  window.addEventListener("focus", function(){ tickClock(); tickLive(); });
+}
+
+init();
+
+</script>
+</body>
+</html>
