@@ -12,8 +12,15 @@ async function main(){
   const home = await fetch(BASE + "/");
   const html = await home.text();
   ok(home.status === 200, "GET / → 200", home.status);
-  ok(html.includes("Scholars Abroad"), "index.html served");
-  ok(html.includes("chat-panel"), "chat UI served");
+  ok(html.includes("Scholars Abroad"), "landing page served at /");
+  ok(html.includes('href="/index.html"'), "landing CTA points at the app");
+
+  const app = await fetch(BASE + "/index.html");
+  const appHtml = await app.text();
+  ok(app.status === 200 && appHtml.includes("chat-panel"), "app + chat UI served at /index.html");
+
+  const appAlias = await fetch(BASE + "/app", { redirect: "manual" });
+  ok(appAlias.status === 302 && appAlias.headers.get("location") === "/index.html", "/app redirects to app", appAlias.status);
 
   const health = await (await fetch(BASE + "/api/health")).json();
   ok(health.ok === true, "health ok");

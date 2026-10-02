@@ -24,6 +24,11 @@ with sync_playwright() as p:
     page.on("console", on_console)
 
     page.goto(URL, wait_until="load", timeout=60000)
+    page.wait_for_timeout(600)
+    ok(page.title().lower().startswith("scholars abroad"), "landing page loads: " + page.title())
+    ok(page.locator('a[href="/index.html"]').count() >= 2, "landing has app CTAs")
+
+    page.goto(URL + "index.html", wait_until="load", timeout=60000)
     page.wait_for_timeout(800)
     ok(page.locator(".ob").count() == 1, "deployed app loads (onboarding screen)")
 

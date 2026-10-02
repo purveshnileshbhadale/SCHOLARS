@@ -57,7 +57,7 @@ const MIME = {
 
 function serveStatic(req, res, pathname){
   let rel = decodeURIComponent(pathname);
-  if (rel === "/") rel = "/index.html";
+  if (rel === "/") rel = "/landing.html";
   const abs = path.normalize(path.join(ROOT, rel));
   if (abs !== ROOT && !abs.startsWith(ROOT + path.sep)) {
     return send(res, 403, { error: "forbidden" });
@@ -203,6 +203,10 @@ const server = http.createServer((req, res) => {
     return handleChat(req, res);
   }
   if (req.method !== "GET" && req.method !== "HEAD") return send(res, 405, { error: "method not allowed" });
+  if (p === "/app"){
+    res.writeHead(302, { Location: "/index.html" });
+    return res.end();
+  }
   return serveStatic(req, res, p);
 });
 
