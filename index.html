@@ -1875,8 +1875,8 @@ function shell(inner, opts){
 
   return '<div class="shell">' +
     '<aside class="sidebar">' +
-      '<a class="brand" href="#/home"><span class="brand-mark">SA</span>' +
-        '<span><b>Scholars Abroad</b><span>Ivy Profile Builder</span></span></a>' +
+      '<a class="brand" href="#/home"><img src="/logo.png" alt="Scholars Abroad" style="height:32px;width:auto">' +
+        '<span><span>Ivy Profile Builder</span></span></a>' +
       navHtml + sideFoot +
     "</aside>" +
     '<div class="main"><main class="content" id="main">' + inner + "</main></div>" +
@@ -2044,7 +2044,7 @@ function viewOnboarding(r){
 
   return '<div class="ob">' +
     '<div class="ob-top">' +
-      '<span class="ob-logo"><span class="brand-mark" style="width:30px;height:30px;font-size:13px">SA</span>Scholars Abroad</span>' +
+      '<span class="ob-logo"><img src="/logo.png" alt="Scholars Abroad" style="height:28px;width:auto"></span>' +
       '<button class="link-btn muted" data-action="ob-skip">Skip</button>' +
     "</div>" +
     progress +
