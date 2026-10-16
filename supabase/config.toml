@@ -1,0 +1,32 @@
+project_id = "scholars-abroad"
+
+# No gateway JWT check: the DB trigger sends a non-JWT bearer; real auth
+# (user JWT / trigger secret) is enforced inside the function.
+[functions.shortlist]
+verify_jwt = false
+
+[functions.create-order]
+verify_jwt = true
+
+[functions.verify-payment]
+verify_jwt = true
+
+# Razorpay calls this endpoint directly — signature is verified with the webhook secret.
+[functions.razorpay-webhook]
+verify_jwt = false
+
+[functions.admin-import]
+verify_jwt = true
+
+[functions.admin-set-role]
+verify_jwt = true
+
+[functions.share-token]
+verify_jwt = true
+
+[functions.sop-assist]
+verify_jwt = true
+
+# Public counsellor-facing profile page — token is the credential.
+[functions.public-profile]
+verify_jwt = false

@@ -1,0 +1,417 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  @apply text-slate-900 antialiased;
+  background:
+    radial-gradient(1100px 600px at 12% -8%, rgba(16, 185, 129, 0.08), transparent 60%),
+    radial-gradient(1000px 700px at 108% 8%, rgba(139, 92, 246, 0.08), transparent 55%),
+    radial-gradient(900px 900px at 55% 118%, rgba(6, 182, 212, 0.07), transparent 60%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+}
+
+a {
+  @apply text-emerald-800;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.5);
+  background-clip: padding-box;
+}
+
+/* ---------- Celestial utilities ---------- */
+
+.gradient-text {
+  background-image: linear-gradient(115deg, #047857 0%, #0d9488 38%, #0891b2 68%, #6d28d9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-text-light {
+  background-image: linear-gradient(115deg, #6ee7b7 0%, #67e8f9 45%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+.glass-dark {
+  background: rgba(8, 12, 32, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glow-emerald {
+  box-shadow: 0 14px 34px -12px rgba(16, 185, 129, 0.6);
+}
+
+.glow-soft {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 44px -26px rgba(15, 23, 42, 0.35);
+}
+
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.starfield {
+  background-image:
+    radial-gradient(1.5px 1.5px at 24px 32px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 118px 84px, rgba(255, 255, 255, 0.65), transparent),
+    radial-gradient(1.3px 1.3px at 186px 44px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 74px 156px, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 228px 178px, rgba(255, 255, 255, 0.75), transparent),
+    radial-gradient(1px 1px at 160px 122px, rgba(255, 255, 255, 0.5), transparent);
+  background-size: 264px 224px;
+  animation: twinkle 5s ease-in-out infinite alternate;
+}
+
+.aurora-drift {
+  animation: auroraDrift 16s ease-in-out infinite alternate;
+}
+
+.float-slow {
+  animation: floatY 9s ease-in-out infinite;
+}
+
+.float-slower {
+  animation: floatY 13s ease-in-out infinite alternate;
+}
+
+.fade-up {
+  animation: fadeUp 0.45s ease-out both;
+}
+
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.35) 50%, transparent 58%);
+  transform: translateX(-120%);
+}
+.shine:hover::after {
+  animation: shineSweep 0.7s ease;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-18px);
+  }
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes auroraDrift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(44px, -32px) scale(1.08);
+  }
+}
+
+@keyframes shineSweep {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-drift,
+  .float-slow,
+  .float-slower,
+  .fade-up,
+  .starfield,
+  .shine::after {
+    animation: none !important;
+  }
+}
+
+@media print {
+  .no-print,
+  .orb,
+  .starfield {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  header {
+    position: static;
+  }
+  main {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  /* Print-optimized tracker: interactive chrome out, content kept. */
+  button {
+    display: none !important;
+  }
+  .rounded-xl,
+  .rounded-2xl,
+  .rounded-lg {
+    break-inside: avoid;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Dark mode. These rules are intentionally UNLAYERED so they beat the */
+/* layered Tailwind utilities without !important. Slate accents are    */
+/* remapped at the token level; white surfaces and accent text get     */
+/* explicit class overrides (their tokens are shared with badges and   */
+/* gradients that must stay dark).                                     */
+/* ------------------------------------------------------------------ */
+
+.dark {
+  --color-slate-50: #141d33;
+  --color-slate-100: #1a2440;
+  --color-slate-200: #2c3a57;
+  --color-slate-300: #44536f;
+  --color-slate-400: #8494ab;
+  --color-slate-500: #9cabc2;
+  --color-slate-600: #c7d2e2;
+  --color-slate-700: #e4eaf3;
+
+  --color-emerald-50: #0a2f28;
+  --color-emerald-100: #0e3b32;
+  --color-teal-50: #0a2e33;
+  --color-teal-100: #0e3940;
+  --color-cyan-50: #0a2b33;
+  --color-sky-50: #0b283c;
+  --color-sky-100: #0f3349;
+  --color-amber-50: #3a2d0b;
+  --color-amber-100: #463810;
+  --color-orange-50: #3a210a;
+  --color-rose-50: #3b1219;
+  --color-rose-100: #48181f;
+  --color-violet-50: #241b41;
+  --color-violet-100: #2c2250;
+  --color-indigo-50: #1c1f45;
+}
+
+.dark body {
+  color: #e4eaf3;
+  background:
+    radial-gradient(1100px 600px at 12% -8%, rgba(16, 185, 129, 0.12), transparent 60%),
+    radial-gradient(1000px 700px at 108% 8%, rgba(139, 92, 246, 0.13), transparent 55%),
+    radial-gradient(900px 900px at 55% 118%, rgba(6, 182, 212, 0.09), transparent 60%),
+    linear-gradient(180deg, #070b18 0%, #0a1024 100%);
+  background-attachment: fixed;
+}
+
+.dark .text-slate-900 {
+  color: #f4f7fb;
+}
+.dark .text-slate-800 {
+  color: #e9eef7;
+}
+.dark .hover\:text-slate-900:hover {
+  color: #f4f7fb;
+}
+.dark .hover\:text-slate-800:hover {
+  color: #e9eef7;
+}
+
+.dark .bg-white {
+  background-color: rgb(15 23 42 / 0.9);
+}
+.dark .bg-white\/5 {
+  background-color: rgb(15 23 42 / 0.3);
+}
+.dark .bg-white\/10 {
+  background-color: rgb(15 23 42 / 0.45);
+}
+.dark .bg-white\/15 {
+  background-color: rgb(15 23 42 / 0.5);
+}
+.dark .bg-white\/20 {
+  background-color: rgb(15 23 42 / 0.55);
+}
+.dark .bg-white\/60 {
+  background-color: rgb(15 23 42 / 0.72);
+}
+.dark .bg-white\/70 {
+  background-color: rgb(15 23 42 / 0.8);
+}
+.dark .bg-white\/80 {
+  background-color: rgb(15 23 42 / 0.86);
+}
+.dark .bg-white\/85 {
+  background-color: rgb(15 23 42 / 0.9);
+}
+.dark .bg-white\/90 {
+  background-color: rgb(15 23 42 / 0.93);
+}
+.dark .hover\:bg-white:hover {
+  background-color: rgb(15 23 42 / 0.9);
+}
+.dark .hover\:bg-white\/10:hover {
+  background-color: rgb(15 23 42 / 0.45);
+}
+.dark .hover\:bg-white\/70:hover {
+  background-color: rgb(15 23 42 / 0.8);
+}
+.dark .focus\:bg-white:focus {
+  background-color: rgb(15 23 42 / 0.93);
+}
+
+.dark .text-emerald-600 {
+  color: #34d399;
+}
+.dark .text-emerald-700,
+.dark .text-emerald-800 {
+  color: #6ee7b7;
+}
+.dark .text-emerald-900 {
+  color: #a7f3d0;
+}
+.dark .hover\:text-emerald-700:hover,
+.dark .hover\:text-emerald-800:hover {
+  color: #6ee7b7;
+}
+.dark .hover\:text-emerald-900:hover {
+  color: #a7f3d0;
+}
+.dark .text-teal-600 {
+  color: #2dd4bf;
+}
+.dark .text-teal-700,
+.dark .text-teal-800 {
+  color: #5eead4;
+}
+.dark .text-cyan-600 {
+  color: #22d3ee;
+}
+.dark .text-cyan-700 {
+  color: #67e8f9;
+}
+.dark .text-sky-600 {
+  color: #38bdf8;
+}
+.dark .text-sky-700,
+.dark .text-sky-800 {
+  color: #7dd3fc;
+}
+.dark .text-sky-900 {
+  color: #bae6fd;
+}
+.dark .text-amber-600 {
+  color: #fbbf24;
+}
+.dark .text-amber-700,
+.dark .text-amber-800 {
+  color: #fcd34d;
+}
+.dark .text-amber-900 {
+  color: #fde68a;
+}
+.dark .text-orange-700 {
+  color: #fdba74;
+}
+.dark .text-rose-600 {
+  color: #fb7185;
+}
+.dark .text-rose-700,
+.dark .text-rose-800 {
+  color: #fda4af;
+}
+.dark .hover\:text-rose-800:hover {
+  color: #fda4af;
+}
+.dark .text-violet-600 {
+  color: #a78bfa;
+}
+.dark .text-violet-700,
+.dark .text-violet-800 {
+  color: #c4b5fd;
+}
+.dark .text-indigo-700 {
+  color: #a5b4fc;
+}
+
+.dark a {
+  color: #6ee7b7;
+}
+
+.dark .glass {
+  background: rgba(13, 19, 38, 0.72);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .glow-soft {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 18px 44px -26px rgba(0, 0, 0, 0.75);
+}

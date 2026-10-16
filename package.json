@@ -1,14 +1,29 @@
 {
-  "name": "scholars-abroad-ivy-profile-builder",
+  "name": "scholars-abroad",
   "version": "1.0.0",
-  "description": "Scholars Abroad – Ivy Profile Builder with ScholarAI study-abroad mentor (Groq API)",
-  "main": "server.js",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "test": "node test-logic.js"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit"
   },
-  "engines": {
-    "node": ">=18"
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "supabase": "^2.120.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
   }
 }
