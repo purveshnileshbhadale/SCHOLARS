@@ -8,7 +8,11 @@ import "./index.css";
 
 initTheme();
 
-createRoot(document.getElementById("root")!).render(
+// Replace the HTML splash with React only when the app is ready to paint.
+const rootEl = document.getElementById("root")!;
+rootEl.replaceChildren();
+
+createRoot(rootEl).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>

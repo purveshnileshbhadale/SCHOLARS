@@ -6,12 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050a1f" />
     <meta name="description" content="Scholars Abroad — free university shortlist for Australia, built from your profile." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/sora-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>Scholars Abroad — Study in Australia</title>
     <script>
       // Apply the stored theme before first paint to avoid a flash of light mode.
@@ -21,7 +18,27 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Instant branded splash: paints on first byte of HTML, cleared by main.tsx before React mounts. -->
+    <div id="root">
+      <div
+        style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: #050a1f; color: #fff; font-family: ui-sans-serif, system-ui, sans-serif; margin: 0"
+      >
+        <p style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em">Scholars Abroad</p>
+        <div
+          style="width: 36px; height: 36px; border-radius: 50%; border: 3px solid rgba(16, 185, 129, 0.25); border-top-color: #10b981; animation: bootspin 0.8s linear infinite"
+        ></div>
+        <p style="font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5)">
+          Loading
+        </p>
+      </div>
+      <style>
+        @keyframes bootspin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
