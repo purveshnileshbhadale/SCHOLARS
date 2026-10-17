@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../lib/auth";
 import type { Booking, Profile } from "../../lib/types";
-import { Badge, Card, PageHeader, Spinner } from "../../components/ui";
+import { Badge, Button, Card, ErrorNote, Input, PageHeader, Spinner, Textarea } from "../../components/ui";
+
+interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  created_at: string;
+}
 
 interface Stats {
   students: number;
@@ -26,7 +34,51 @@ interface Stage {
 }
 
 export default function AdminHome() {
+  const { profile: me } = useAuth();
   const [s, setS] = useState<Stats | null>(null);
+
+  // Admin power: broadcast announcement banner to every signed-in user.
+  const [anns, setAnns] = useState<Announcement[]>([]);
+  const [annTitle, setAnnTitle] = useState("");
+  const [annBody, setAnnBody] = useState("");
+  const [annBusy, setAnnBusy] = useState(false);
+  const [annErr, setAnnErr] = useState<string | null>(null);
+
+  async function loadAnns() {
+    const { data } = await supabase
+      .from("announcements")
+      .select("id, title, body, created_at")
+      .order("created_at", { ascending: false })
+      .limit(5);
+    setAnns((data as Announcement[]) ?? []);
+  }
+
+  useEffect(() => {
+    void loadAnns();
+  }, []);
+
+  async function sendAnn() {
+    if (!me || !annTitle.trim() || !annBody.trim()) return;
+    setAnnBusy(true);
+    setAnnErr(null);
+    const { error } = await supabase
+      .from("announcements")
+      .insert({ admin_id: me.id, title: annTitle.trim(), body: annBody.trim() });
+    if (error) setAnnErr(error.message);
+    else {
+      setAnnTitle("");
+      setAnnBody("");
+      await loadAnns();
+    }
+    setAnnBusy(false);
+  }
+
+  async function delAnn(id: string) {
+    setAnnErr(null);
+    const { error } = await supabase.from("announcements").delete().eq("id", id);
+    if (error) setAnnErr(error.message);
+    else await loadAnns();
+  }
 
   useEffect(() => {
     (async () => {
@@ -173,6 +225,49 @@ export default function AdminHome() {
               </li>
             ))}
           </ul>
+        )}
+      </Card>
+      <Card className="mt-6">
+        <h2 className="font-bold text-slate-900">Announcements</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Pinned as a banner on every signed-in user's app until each one dismisses it.
+        </p>
+        <div className="mt-3 space-y-2">
+          <Input
+            placeholder="Title — e.g. New March intake deadlines published"
+            value={annTitle}
+            onChange={(e) => setAnnTitle(e.target.value)}
+          />
+          <Textarea
+            rows={3}
+            placeholder="Message for all students and counsellors…"
+            value={annBody}
+            onChange={(e) => setAnnBody(e.target.value)}
+          />
+          <ErrorNote>{annErr}</ErrorNote>
+          <Button onClick={sendAnn} disabled={annBusy || !annTitle.trim() || !annBody.trim()}>
+            {annBusy ? "Publishing…" : "Publish announcement"}
+          </Button>
+        </div>
+        {anns.length ? (
+          <ul className="mt-4 divide-y divide-slate-100">
+            {anns.map((a) => (
+              <li key={a.id} className="flex items-start justify-between gap-3 py-2 text-sm">
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-800">{a.title}</p>
+                  <p className="truncate text-xs text-slate-500">{a.body}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-xs text-slate-400">{new Date(a.created_at).toLocaleDateString("en-AU")}</span>
+                  <Button variant="ghost" onClick={() => delAnn(a.id)}>
+                    Delete
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-slate-500">No announcements yet.</p>
         )}
       </Card>
       <p className="mt-6 text-xs text-slate-400">Revenue counts bookings marked paid, scheduled or completed.</p>

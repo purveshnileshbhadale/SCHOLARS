@@ -2,9 +2,19 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../lib/auth";
-import type { Booking, CounsellorNote, Profile, Shortlist, StudentProfile, University } from "../../lib/types";
+import type { Application, Booking, CounsellorNote, Profile, Shortlist, StudentProfile, University } from "../../lib/types";
 import { money } from "../../lib/utils";
 import { Badge, Button, Card, ErrorNote, Field, Input, PageHeader, Spinner, Textarea } from "../../components/ui";
+
+type ApplicationRow = Application & { universities?: { name?: string } | null };
+
+/** wa.me link — Indian 10-digit numbers get the +91 country code, others pass through. */
+function waLink(phone: string): string {
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 10) return `https://wa.me/91${d}`;
+  if (d.length === 11 && d.startsWith("0")) return `https://wa.me/91${d.slice(1)}`;
+  return `https://wa.me/${d}`;
+}
 
 export default function CounsellorStudent() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +26,7 @@ export default function CounsellorStudent() {
   const [shortlist, setShortlist] = useState<Shortlist | null>(null);
   const [unis, setUnis] = useState<University[]>([]);
   const [notes, setNotes] = useState<CounsellorNote[]>([]);
+  const [apps, setApps] = useState<ApplicationRow[]>([]);
   const [noteText, setNoteText] = useState("");
   const [noteQuery, setNoteQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -42,16 +53,18 @@ export default function CounsellorStudent() {
       setBooking((b as Booking) ?? null);
       if (!b) return setLoading(false); // RLS hides everything else anyway
 
-      const [{ data: prof }, { data: profile2 }, { data: sl }, { data: n }] = await Promise.all([
+      const [{ data: prof }, { data: profile2 }, { data: sl }, { data: n }, { data: ap }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
         supabase.from("student_profiles").select("*").eq("user_id", id).maybeSingle(),
         supabase.from("shortlists").select("*").eq("student_id", id).order("generated_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("counsellor_notes").select("*").eq("booking_id", b.id).order("created_at", { ascending: false }),
+        supabase.from("applications").select("*, universities(name)").eq("student_id", id).order("created_at", { ascending: false }),
       ]);
       setStudent((prof as Profile) ?? null);
       setSp((profile2 as StudentProfile) ?? null);
       setShortlist((sl as Shortlist) ?? null);
       setNotes((n as CounsellorNote[]) ?? []);
+      setApps((ap as ApplicationRow[]) ?? []);
 
       if (sl?.result?.items?.length) {
         const { data: u } = await supabase
@@ -168,10 +181,24 @@ export default function CounsellorStudent() {
             <Row k="Preferred cities" v={cities} />
             <Row k="Priorities" v={priority} />
           </dl>
-          {resumeUrl ? (
-            <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-sm font-semibold">
-              View resume (signed link, expires in 1h) ↗
-            </a>
+          {resumeUrl || student?.phone ? (
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              {resumeUrl ? (
+                <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="inline-block text-sm font-semibold">
+                  View resume (signed link, expires in 1h) ↗
+                </a>
+              ) : null}
+              {student?.phone ? (
+                <a
+                  href={waLink(student.phone)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-sm font-semibold text-emerald-800 hover:text-emerald-900"
+                >
+                  WhatsApp student ↗
+                </a>
+              ) : null}
+            </div>
           ) : null}
         </Card>
 
@@ -195,6 +222,33 @@ export default function CounsellorStudent() {
                       {money(it.tuition_aud ?? u?.tuition_aud)}/yr tuition
                       {it.post_study_work_years != null ? ` · PSW ${it.post_study_work_years} yrs` : ""}
                     </p>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <h2 className="font-bold text-slate-900">Applications</h2>
+          {apps.length === 0 ? (
+            <p className="mt-2 text-sm text-slate-500">No applications tracked yet.</p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {apps.map((a) => {
+                const uniName = Array.isArray(a.universities) ? a.universities[0]?.name : a.universities?.name;
+                return (
+                  <li key={a.id} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-slate-900">
+                        {a.program ?? "Program"}
+                        {uniName ? ` — ${uniName}` : ""}
+                      </span>
+                      <Badge className="border-slate-200 bg-slate-50 text-slate-600">{a.status}</Badge>
+                    </div>
+                    {a.admission_deadline ? (
+                      <p className="mt-0.5 text-xs text-slate-500">Deadline {a.admission_deadline}</p>
+                    ) : null}
                   </li>
                 );
               })}

@@ -26,7 +26,9 @@ const INFO: Record<string, string> = {
   "/counsellor/bookings": "Accept or decline booking requests and manage your session schedule.",
   // Admin
   "/admin": "Platform stats, conversion funnel and requests that need attention.",
+  "/admin/users": "Search everyone, switch roles — promote a counsellor or admin instantly.",
   "/admin/universities": "Edit university records — ranks, fees, intakes, highlights and sources.",
+  "/admin/scholarships": "Create, edit and delete scholarship records shown to students.",
   "/admin/import": "Bulk-upload or update universities from spreadsheets (Excel/CSV).",
   "/admin/counsellors": "Manage counsellor accounts, bios and specialisations.",
   "/admin/bookings": "Review all booking requests, payments and session statuses.",

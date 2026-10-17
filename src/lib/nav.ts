@@ -5,7 +5,9 @@ export function linksFor(role: string | undefined): { to: To; label: string }[] 
     return [
       { to: "/menu", label: "Menu" },
       { to: "/admin", label: "Overview" },
+      { to: "/admin/users", label: "Users" },
       { to: "/admin/universities", label: "Universities" },
+      { to: "/admin/scholarships", label: "Scholarships" },
       { to: "/admin/import", label: "Excel import" },
       { to: "/admin/counsellors", label: "Counsellors" },
       { to: "/admin/bookings", label: "Bookings" },

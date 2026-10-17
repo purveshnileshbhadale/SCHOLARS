@@ -35,6 +35,8 @@ const CounsellorHome = lazy(() => import("./pages/counsellor/CounsellorHome"));
 const CounsellorBookings = lazy(() => import("./pages/counsellor/CounsellorBookings"));
 const CounsellorStudent = lazy(() => import("./pages/counsellor/CounsellorStudent"));
 const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminScholarships = lazy(() => import("./pages/admin/AdminScholarships"));
 const AdminUniversities = lazy(() => import("./pages/admin/AdminUniversities"));
 const AdminCounsellors = lazy(() => import("./pages/admin/AdminCounsellors"));
 const AdminBookings = lazy(() => import("./pages/admin/AdminBookings"));
@@ -177,6 +179,8 @@ export default function App() {
 
         <Route path="/admin" element={<Guard role="admin"><AdminHome /></Guard>} />
 
+        <Route path="/admin/users" element={<Guard role="admin"><AdminUsers /></Guard>} />
+        <Route path="/admin/scholarships" element={<Guard role="admin"><AdminScholarships /></Guard>} />
         <Route path="/admin/universities" element={<Guard role="admin"><AdminUniversities /></Guard>} />
         <Route path="/admin/import" element={<Guard role="admin"><AdminImport /></Guard>} />
         <Route path="/admin/counsellors" element={<Guard role="admin"><AdminCounsellors /></Guard>} />

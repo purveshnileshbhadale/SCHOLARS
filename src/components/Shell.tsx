@@ -1,6 +1,7 @@
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { homeFor, useAuth } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 import { linksFor } from "../lib/nav";
 import { getTheme, setTheme } from "../lib/theme";
 import ActionBell from "./ActionBell";
@@ -16,7 +17,38 @@ export default function Shell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [dark, setDark] = useState(getTheme() === "dark");
+  const [announce, setAnnounce] = useState<{ id: string; title: string; body: string } | null>(null);
   const links = linksFor(profile?.role);
+
+  // Admin announcements (feature: broadcast banner, dismiss per device).
+  useEffect(() => {
+    if (!profile) return;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("announcements")
+          .select("id, title, body, created_at")
+          .order("created_at", { ascending: false })
+          .limit(1);
+        const a = data?.[0];
+        if (!a) return;
+        if (localStorage.getItem("sa_ann_dismissed") === a.id) return;
+        setAnnounce({ id: a.id, title: a.title, body: a.body });
+      } catch {
+        /* banner is non-critical */
+      }
+    })();
+  }, [profile]);
+
+  function dismissAnnouncement() {
+    if (!announce) return;
+    try {
+      localStorage.setItem("sa_ann_dismissed", announce.id);
+    } catch {
+      /* private mode */
+    }
+    setAnnounce(null);
+  }
 
   function toggleTheme() {
     const next = dark ? "light" : "dark";
@@ -140,6 +172,23 @@ export default function Shell({ children }: { children: ReactNode }) {
           </nav>
         ) : null}
       </header>
+      {announce ? (
+        <div className="no-print mx-auto max-w-6xl px-4 pt-3">
+          <div className="flex items-start gap-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3">
+            <div className="min-w-0 grow">
+              <p className="text-sm font-bold text-slate-900">{announce.title}</p>
+              <p className="mt-0.5 whitespace-pre-wrap text-sm text-slate-800">{announce.body}</p>
+            </div>
+            <button
+              onClick={dismissAnnouncement}
+              aria-label="Dismiss announcement"
+              className="shrink-0 rounded-lg px-2 text-lg leading-none text-slate-400 transition hover:text-slate-700"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ) : null}
       <main className="mx-auto max-w-6xl px-4 py-8">
         <div key={loc.pathname} className="fade-up">
           {children}

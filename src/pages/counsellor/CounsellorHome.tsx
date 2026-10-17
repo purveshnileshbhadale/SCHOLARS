@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../lib/auth";
 import type { Booking } from "../../lib/types";
-import { Badge, Card, Empty, PageHeader, Spinner } from "../../components/ui";
+import { Badge, Card, Empty, Input, PageHeader, Spinner } from "../../components/ui";
 
 const ACTIVE = ["paid", "scheduled", "completed"];
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -17,6 +17,7 @@ export default function CounsellorHome() {
   const { profile } = useAuth();
   const [rows, setRows] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -145,32 +146,54 @@ export default function CounsellorHome() {
       {active.length === 0 ? (
         <Empty title="No students yet" body="When a student books a session with you, they'll appear here." />
       ) : (
-        <div className="mt-3 space-y-3">
-          {active.map((b) => (
-            <Link key={b.id} to={`/counsellor/student/${b.student_id}`} className="block">
-              <Card className="flex items-center gap-3 transition hover:border-emerald-400">
-                <div className="grow">
-                  <h3 className="font-bold text-slate-900">{b.profiles?.name ?? "Student"}</h3>
-                  <p className="text-xs text-slate-500">
-                    {b.profiles?.email}
-                    {b.profiles?.phone ? ` · ${b.profiles.phone}` : ""}
-                  </p>
-                </div>
-                <Badge
-                  className={
-                    b.status === "completed"
-                      ? "border-slate-200 bg-slate-100 text-slate-700"
-                      : b.status === "scheduled"
-                        ? "border-sky-200 bg-sky-50 text-sky-800"
-                        : "border-emerald-200 bg-emerald-50 text-emerald-800"
-                  }
-                >
-                  {b.status}
-                </Badge>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        <>
+          <Input
+            className="mt-3 max-w-72"
+            placeholder="Search by name or email…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          {(() => {
+            const needle = q.trim().toLowerCase();
+            const shown = needle
+              ? active.filter(
+                  (b) =>
+                    (b.profiles?.name ?? "").toLowerCase().includes(needle) ||
+                    (b.profiles?.email ?? "").toLowerCase().includes(needle),
+                )
+              : active;
+            if (!shown.length)
+              return <p className="mt-4 text-sm text-slate-500">No students match “{q.trim()}”.</p>;
+            return (
+              <div className="mt-3 space-y-3">
+                {shown.map((b) => (
+                  <Link key={b.id} to={`/counsellor/student/${b.student_id}`} className="block">
+                    <Card className="flex items-center gap-3 transition hover:border-emerald-400">
+                      <div className="grow">
+                        <h3 className="font-bold text-slate-900">{b.profiles?.name ?? "Student"}</h3>
+                        <p className="text-xs text-slate-500">
+                          {b.profiles?.email}
+                          {b.profiles?.phone ? ` · ${b.profiles.phone}` : ""}
+                        </p>
+                      </div>
+                      <Badge
+                        className={
+                          b.status === "completed"
+                            ? "border-slate-200 bg-slate-100 text-slate-700"
+                            : b.status === "scheduled"
+                              ? "border-sky-200 bg-sky-50 text-sky-800"
+                              : "border-emerald-200 bg-emerald-50 text-emerald-800"
+                        }
+                      >
+                        {b.status}
+                      </Badge>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            );
+          })()}
+        </>
       )}
     </div>
   );
