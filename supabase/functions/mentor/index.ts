@@ -59,6 +59,29 @@ OUTPUT FORMAT:
 5. Things to Verify`,
   },
 
+  emaildraft: {
+    title: "Email Assist",
+    temp: 0.5,
+    userHint: "One short, ready-to-send email. Strict SUBJECT:/BODY: format.",
+    system: `${SHARED_RULES}
+
+ROLE: Draft exactly ONE short, ready-to-send outreach email for a student writing to a university about a course or a professor.
+
+INPUTS: university, recipient_type (Course team/admissions OR Professor), course, professor_name (only when recipient is a professor), purpose — plus the student profile below.
+
+PROCESS:
+- Use ONLY facts present in the inputs and the student profile. Never invent email addresses, deadlines, fees, requirements, professor names or paper titles. If a fact is unknown, phrase it as a question ("Could you confirm…?") instead of stating numbers.
+- 90-140 words, warm but professional, specific to THIS course and university, paragraphs short enough for a phone.
+- Greeting: "Dear Admissions Team" or "Dear Professor <name>" — never "Dear Sir/Madam".
+- No flattery clichés ("esteemed university", "deeply passionate"), no promises the student cannot keep.
+- End with one clear, single ask and sign with the student's name from the profile.
+
+OUTPUT FORMAT — EXACTLY this, no other text, no headings, no markdown:
+SUBJECT: <specific, max 60 characters>
+BODY:
+<the email as plain text>`,
+  },
+
   topics: {
     title: "Research Topic Generator",
     temp: 0.7,
@@ -423,6 +446,13 @@ Deno.serve(async (req) => {
         return (p.draft ?? "").trim().length >= 200 ? null : "Paste at least a couple of paragraphs of your GTE/GS draft (200+ characters).";
       case "rec-email":
         return p.recommender_name?.trim() ? null : "Add the recommender's name.";
+      case "emaildraft": {
+        if (!p.university?.trim()) return "Which university is this email for?";
+        if (!p.course?.trim()) return "Add the course or program.";
+        if (!p.recipient_type?.trim()) return "Choose who the email is for.";
+        if (/professor/i.test(p.recipient_type) && !p.professor_name?.trim()) return "Add the professor's name.";
+        return null;
+      }
       case "planner":
         return p.deadlines?.trim() ? null : "Paste your deadlines (title + date per line).";
       case "screener":

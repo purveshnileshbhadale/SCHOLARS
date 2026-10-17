@@ -5,6 +5,7 @@ import { useAuth } from "../lib/auth";
 import type { Scholarship, Shortlist, ShortlistItem, StudentProfile, Tier, University } from "../lib/types";
 import { money, tierBadge } from "../lib/utils";
 import { waShareUrl } from "../lib/config";
+import EmailAssist from "../components/EmailAssist";
 import { Badge, Button, Card, Empty, ErrorNote, PageHeader, Spinner } from "../components/ui";
 
 const TIER_LABEL: Record<Tier, string> = { reach: "Reach", target: "Target", safety: "Safety" };
@@ -54,6 +55,7 @@ export default function Dashboard() {
   const [generating, setGenerating] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const autoRan = useRef(false);
+  const [assistUni, setAssistUni] = useState<string | null>(null);
 
   const loadLatest = useCallback(async () => {
     if (!session) return;
@@ -308,6 +310,7 @@ export default function Dashboard() {
                     item={item}
                     uni={unis.find((u) => u.id === item.university_id) ?? null}
                     scholarships={scholarships.filter((s) => (item.scholarship_ids ?? []).includes(s.id))}
+                    onAssist={() => setAssistUni(item.name)}
                   />
                 ))}
               </div>
@@ -333,11 +336,30 @@ export default function Dashboard() {
           </Card>
         </>
       ) : null}
+
+      {/* Feature 61: per-uni email assistance (Gmail hand-off). */}
+      {assistUni ? (
+        <EmailAssist
+          uniName={assistUni}
+          course={studentProfile?.intended_major ?? ""}
+          onClose={() => setAssistUni(null)}
+        />
+      ) : null}
     </div>
   );
 }
 
-function UniCard({ item, uni, scholarships }: { item: ShortlistItem; uni: University | null; scholarships: Scholarship[] }) {
+function UniCard({
+  item,
+  uni,
+  scholarships,
+  onAssist,
+}: {
+  item: ShortlistItem;
+  uni: University | null;
+  scholarships: Scholarship[];
+  onAssist: () => void;
+}) {
   // Feature: net tuition after the largest known scholarship award.
   const tuition = item.tuition_aud ?? uni?.tuition_aud ?? null;
   const bestAward = scholarships.reduce<number | null>(
@@ -408,6 +430,11 @@ function UniCard({ item, uni, scholarships }: { item: ShortlistItem; uni: Univer
           official page.
         </p>
       ) : null}
+      <div className="mt-3 border-t border-slate-100 pt-3">
+        <Button variant="ghost" className="w-full" onClick={onAssist}>
+          Email assist — course or professor
+        </Button>
+      </div>
     </Card>
   );
 }
