@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
 import PublicProfile from "./pages/PublicProfile";
 
+const Menu = lazy(() => import("./pages/Menu"));
 const Universities = lazy(() => import("./pages/Universities"));
 const Scholarships = lazy(() => import("./pages/Scholarships"));
 const Tools = lazy(() => import("./pages/Tools"));
@@ -152,6 +153,7 @@ export default function App() {
         <Route path="/student-profile/:token" element={<PublicProfile />} />
 
         <Route path="/onboarding" element={<Guard><Onboarding /></Guard>} />
+        <Route path="/menu" element={<Guard><Menu /></Guard>} />
         <Route path="/dashboard" element={<Guard><Dashboard /></Guard>} />
         <Route path="/universities" element={<Guard><Universities /></Guard>} />
         <Route path="/scholarships" element={<Guard><Scholarships /></Guard>} />

@@ -241,6 +241,7 @@ export default function Landing() {
           <img src="/logo.png" alt="" className="h-6 w-auto" />
           <span>© {new Date().getFullYear()} Scholars Abroad Consulting Pvt. Ltd., Pune</span>
           <span>Fergusson College Road, Pune 411005 · +91 86987 86251</span>
+          <span className="text-slate-400">Info made by B2C Solutions</span>
           <span className="ml-auto">Not affiliated with any university or embassy.</span>
         </div>
       </footer>

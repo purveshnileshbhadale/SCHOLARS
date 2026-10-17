@@ -134,6 +134,9 @@ export default function Shell({ children }: { children: ReactNode }) {
                 {l.label}
               </NavLink>
             ))}
+            <p className="border-t border-slate-200/60 px-3 pb-1 pt-2 text-right text-[10px] text-slate-400">
+              Info made by B2C Solutions
+            </p>
           </nav>
         ) : null}
       </header>
@@ -142,6 +145,9 @@ export default function Shell({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
+      <footer className="no-print mx-auto flex max-w-6xl justify-end px-4 pb-5">
+        <span className="text-[10px] font-medium tracking-wide text-slate-400">Info made by B2C Solutions</span>
+      </footer>
       <CommandPalette open={cmdOpen} setOpen={setCmdOpen} />
     </div>
   );
