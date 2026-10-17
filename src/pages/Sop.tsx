@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
 import { SOP_SECTIONS, sopStats } from "../lib/sopQuestions";
+import type { SopVersion } from "../lib/types";
 import { Badge, Button, Card, ErrorNote, PageHeader, Spinner, Textarea } from "../components/ui";
 
 interface AiReview {
@@ -11,6 +12,23 @@ interface AiReview {
   sections: { section_id: string; score: number; strengths: string[]; improvements: string[] }[];
   top_fixes: string[];
   model_version?: string;
+}
+
+const MAX_VERSIONS = 20;
+
+function answersWordCount(a: Record<string, string>): number {
+  return Object.values(a)
+    .join(" ")
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+function questionLabel(qid: string): string {
+  for (const sec of SOP_SECTIONS) {
+    const q = sec.questions.find((x) => x.id === qid);
+    if (q) return `${sec.title} — ${q.q}`;
+  }
+  return qid;
 }
 
 export default function Sop() {
@@ -26,6 +44,24 @@ export default function Sop() {
   const [aiBusy, setAiBusy] = useState<"review" | "draft" | null>(null);
   const [showDraft, setShowDraft] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const [versions, setVersions] = useState<SopVersion[]>([]);
+  const [compareA, setCompareA] = useState<string>("");
+  const [compareB, setCompareB] = useState<string>("");
+
+  async function loadVersions() {
+    if (!session) return;
+    const { data } = await supabase
+      .from("sop_versions")
+      .select("*")
+      .eq("student_id", session.user.id)
+      .order("created_at", { ascending: false })
+      .limit(MAX_VERSIONS);
+    const rows = (data as SopVersion[]) ?? [];
+    setVersions(rows);
+    setCompareA((cur) => cur || rows[0]?.id || "");
+    setCompareB((cur) => cur || rows[1]?.id || rows[0]?.id || "");
+  }
 
   async function loadAi() {
     if (!session) return;
@@ -52,7 +88,48 @@ export default function Sop() {
         setAiDraft(data?.ai_draft ?? null);
         setLoading(false);
       });
+    loadVersions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
+
+  async function saveVersion(): Promise<boolean> {
+    if (!session) return false;
+    const label = prompt("Name this version", `Draft ${new Date().toLocaleDateString("en-AU", { day: "numeric", month: "short" })}`);
+    if (label == null || !label.trim()) return false;
+    setErr(null);
+    const { error } = await supabase.from("sop_versions").insert({
+      student_id: session.user.id,
+      label: label.trim().slice(0, 60),
+      answers,
+      word_count: answersWordCount(answers),
+    });
+    if (error) {
+      setErr(error.message);
+      return false;
+    }
+    // keep only the newest MAX_VERSIONS
+    await loadVersions();
+    if (versions.length >= MAX_VERSIONS) {
+      const drop = versions.slice(MAX_VERSIONS - 1);
+      if (drop.length) await supabase.from("sop_versions").delete().in("id", drop.map((v) => v.id));
+      await loadVersions();
+    }
+    return true;
+  }
+
+  function restoreVersion(v: SopVersion) {
+    setAnswers(v.answers ?? {});
+    setErr(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function deleteVersion(id: string) {
+    if (!confirm("Delete this saved version?")) return;
+    await supabase.from("sop_versions").delete().eq("id", id);
+    setCompareA("");
+    setCompareB("");
+    await loadVersions();
+  }
 
   async function save(): Promise<boolean> {
     if (!session) return false;
@@ -232,6 +309,81 @@ export default function Sop() {
         ) : null}
       </Card>
 
+      <Card className="mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="font-bold text-slate-900">Version history</h2>
+            <p className="text-xs text-slate-500">
+              Snapshot your answers before big edits — restore or compare any saved version. Newest {MAX_VERSIONS} kept.
+            </p>
+          </div>
+          <Button variant="ghost" className="px-3" onClick={() => saveVersion()}>
+            Save current as version
+          </Button>
+        </div>
+        {versions.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">No versions saved yet.</p>
+        ) : (
+          <>
+            <ul className="mt-3 divide-y divide-slate-100">
+              {versions.map((v) => (
+                <li key={v.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                  <div>
+                    <span className="font-semibold text-slate-800">{v.label}</span>
+                    <span className="ml-2 text-xs text-slate-500">
+                      {v.word_count} words · {new Date(v.created_at).toLocaleString("en-AU", { dateStyle: "medium", timeStyle: "short" })}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="font-semibold text-emerald-700 hover:text-emerald-900" onClick={() => restoreVersion(v)}>
+                      Restore
+                    </button>
+                    <button className="font-semibold text-rose-600 hover:text-rose-800" onClick={() => deleteVersion(v.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {versions.length >= 2 ? (
+              <div className="mt-4 border-t border-slate-100 pt-3">
+                <div className="flex flex-wrap items-end gap-2 text-xs font-semibold text-slate-600">
+                  <label>
+                    Compare
+                    <select
+                      className="ml-2 rounded-xl border border-slate-300 px-2 py-1.5 font-normal"
+                      value={compareA}
+                      onChange={(e) => setCompareA(e.target.value)}
+                    >
+                      {versions.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    with
+                    <select
+                      className="ml-2 rounded-xl border border-slate-300 px-2 py-1.5 font-normal"
+                      value={compareB}
+                      onChange={(e) => setCompareB(e.target.value)}
+                    >
+                      {versions.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <CompareView a={versions.find((v) => v.id === compareA)} b={versions.find((v) => v.id === compareB)} />
+              </div>
+            ) : null}
+          </>
+        )}
+      </Card>
+
       <div className="space-y-8">
         {SOP_SECTIONS.map((sec) => (
           <section key={sec.id}>
@@ -264,6 +416,42 @@ export default function Sop() {
           Save answers
         </Button>
       </div>
+    </div>
+  );
+}
+
+function CompareView({ a, b }: { a?: SopVersion; b?: SopVersion }) {
+  if (!a || !b || a.id === b.id)
+    return <p className="mt-2 text-xs text-slate-400">Pick two different versions to see what changed.</p>;
+  const keys = new Set([...Object.keys(a.answers ?? {}), ...Object.keys(b.answers ?? {})]);
+  const changed: { qid: string; old: string; cur: string }[] = [];
+  for (const qid of keys) {
+    const oldA = (a.answers?.[qid] ?? "").trim();
+    const newA = (b.answers?.[qid] ?? "").trim();
+    if (oldA !== newA) changed.push({ qid, old: oldA, cur: newA });
+  }
+  if (!changed.length)
+    return <p className="mt-2 text-xs text-emerald-700">These two versions are identical.</p>;
+  return (
+    <div className="mt-3 space-y-3">
+      <p className="text-xs text-slate-500">
+        {changed.length} question{changed.length === 1 ? "" : "s"} differ between “{a.label}” and “{b.label}”.
+      </p>
+      {changed.map((c) => (
+        <div key={c.qid} className="rounded-xl border border-slate-200 p-3">
+          <p className="text-xs font-semibold text-slate-700">{questionLabel(c.qid)}</p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-lg bg-rose-50/70 p-2">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-rose-500">{a.label}</p>
+              <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-slate-800">{c.old || <span className="text-slate-400">(empty)</span>}</p>
+            </div>
+            <div className="rounded-lg bg-emerald-50/70 p-2">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-600">{b.label}</p>
+              <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-slate-800">{c.cur || <span className="text-slate-400">(empty)</span>}</p>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

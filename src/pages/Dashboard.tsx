@@ -269,6 +269,8 @@ export default function Dashboard() {
         );
       })()}
 
+      <DailyPlanCard />
+
       {generating && !shortlist ? (
         <Card className="py-16 text-center">
           <Spinner className="size-8" />
@@ -416,5 +418,137 @@ function Fact({ label, value }: { label: string; value: string }) {
       <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</dt>
       <dd className="font-semibold text-slate-800">{value}</dd>
     </div>
+  );
+}
+
+// ---------------- Feature 56: daily plan + streak ----------------
+
+const PLAN_TASKS = [
+  { key: "profile", label: "Tidy one profile field", to: "/onboarding" },
+  { key: "shortlist", label: "Review one shortlisted university", to: "/dashboard" },
+  { key: "sop", label: "Answer one SOP question", to: "/sop" },
+  { key: "deadline", label: "Check your deadlines", to: "/deadlines" },
+  { key: "app", label: "Update one application", to: "/applications" },
+  { key: "doc", label: "Verify one document", to: "/documents" },
+  { key: "mentor", label: "Ask ScholarAI one question", to: "/mentor" },
+  { key: "community", label: "Post or reply in Community", to: "/community" },
+];
+
+function localDay(d = new Date()): string {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function todayTasks(dayStr: string) {
+  const dayNum = Math.floor(new Date(`${dayStr}T00:00:00`).getTime() / 86400000);
+  const start = ((dayNum % PLAN_TASKS.length) + PLAN_TASKS.length) % PLAN_TASKS.length;
+  return Array.from({ length: 4 }, (_, i) => PLAN_TASKS[(start + i) % PLAN_TASKS.length]);
+}
+
+function streakFrom(days: Set<string>): number {
+  let streak = 0;
+  const d = new Date();
+  if (!days.has(localDay(d))) d.setDate(d.getDate() - 1);
+  while (days.has(localDay(d))) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function DailyPlanCard() {
+  const { session } = useAuth();
+  const today = localDay();
+  const tasks = todayTasks(today);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [streak, setStreak] = useState(0);
+
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      const since = new Date(Date.now() - 60 * 86_400_000).toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from("daily_checks")
+        .select("day, task_key")
+        .eq("user_id", session.user.id)
+        .gte("day", since);
+      const rows = (data ?? []) as { day: string; task_key: string }[];
+      const days = new Set(rows.map((r) => r.day));
+      setStreak(streakFrom(days));
+      setChecked(new Set(rows.filter((r) => r.day === today).map((r) => r.task_key)));
+    })();
+  }, [session, today]);
+
+  async function toggle(key: string, on: boolean) {
+    if (!session) return;
+    setChecked((cur) => {
+      const next = new Set(cur);
+      if (on) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+    if (on) {
+      const { error } = await supabase
+        .from("daily_checks")
+        .upsert({ user_id: session.user.id, day: today, task_key: key }, { onConflict: "user_id,day,task_key" });
+      if (error) return;
+      setStreak((s) => Math.max(s, 1));
+    } else {
+      await supabase.from("daily_checks").delete().eq("user_id", session.user.id).eq("day", today).eq("task_key", key);
+    }
+    // refresh streak from server truth
+    const since = new Date(Date.now() - 60 * 86_400_000).toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from("daily_checks")
+      .select("day")
+      .eq("user_id", session.user.id)
+      .gte("day", since);
+    setStreak(streakFrom(new Set(((data ?? []) as { day: string }[]).map((r) => r.day))));
+  }
+
+  const doneCount = tasks.filter((t) => checked.has(t.key)).length;
+
+  return (
+    <Card className="mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="font-bold text-slate-900">Today's plan</h2>
+          <p className="text-xs text-slate-500">
+            Four small moves, fresh every day. Check them off as you go — done {doneCount}/{tasks.length}.
+          </p>
+        </div>
+        {streak > 0 ? (
+          <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+            {streak}-day streak
+          </span>
+        ) : (
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
+            Start a streak today
+          </span>
+        )}
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {tasks.map((t) => (
+          <li key={t.key}>
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-50">
+              <input
+                type="checkbox"
+                className="size-4 rounded border-slate-300 text-emerald-600"
+                checked={checked.has(t.key)}
+                onChange={(e) => toggle(t.key, e.target.checked)}
+              />
+              <span className={`text-sm ${checked.has(t.key) ? "text-slate-400 line-through" : "text-slate-700"}`}>{t.label}</span>
+              <Link to={t.to} className="ml-auto text-xs font-semibold text-emerald-700 hover:text-emerald-900">
+                Open →
+              </Link>
+            </label>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[11px] text-slate-400">
+        A streak day = any task checked. Consistency beats cramming the week before a deadline.
+      </p>
+    </Card>
   );
 }

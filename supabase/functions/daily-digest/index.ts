@@ -80,8 +80,22 @@ Deno.serve(async (req) => {
     push(r.user_id, `Reminder — ${r.title}`);
   }
 
-  const dueUsers = [...byUser.keys()];
+  let dueUsers = [...byUser.keys()];
   if (dueUsers.length === 0) return json({ ok: true, due_users: 0, emailed: 0, note: "nothing due" });
+
+  // Feature 55: honour the per-student digest opt-out (Settings → Notifications).
+  const { data: prefs } = await admin
+    .from("profiles")
+    .select("id, email_digest_enabled")
+    .in("id", dueUsers);
+  const optedOut = new Set(
+    ((prefs ?? []) as { id: string; email_digest_enabled: boolean | null }[])
+      .filter((p) => p.email_digest_enabled === false)
+      .map((p) => p.id),
+  );
+  dueUsers = dueUsers.filter((uid) => !optedOut.has(uid));
+  if (dueUsers.length === 0)
+    return json({ ok: true, due_users: 0, emailed: 0, note: "all due users opted out of the digest" });
 
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!resendKey) {

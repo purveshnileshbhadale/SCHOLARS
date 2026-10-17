@@ -41,7 +41,7 @@ export default function ActionBell() {
     let cancelled = false;
     (async () => {
       const uid = session.user.id;
-      const [spR, slR, sopR, apR, bkR, vcR, svR, remR, docR] = await Promise.all([
+      const [spR, slR, sopR, apR, bkR, vcR, svR, leadR, remR, docR] = await Promise.all([
         supabase.from("student_profiles").select("is_complete").eq("user_id", uid).maybeSingle(),
         supabase.from("shortlists").select("result").eq("student_id", uid).order("generated_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("sop_responses").select("student_id").limit(1),
@@ -58,6 +58,7 @@ export default function ActionBell() {
           .limit(5),
         supabase.from("student_checklist_items").select("id").limit(1),
         supabase.from("saved_universities").select("university_id").limit(500),
+        supabase.from("profiles").select("reminder_lead_days").eq("id", uid).maybeSingle(),
         supabase
           .from("reminders")
           .select("id, target_id, title, due_at")
@@ -77,6 +78,9 @@ export default function ActionBell() {
       ]);
       if (cancelled) return;
 
+      // Feature 55: student-chosen reminder window (default 30 days).
+      const lead = Math.min(Math.max((leadR.data as { reminder_lead_days?: number } | null)?.reminder_lead_days ?? 30, 7), 90);
+
       // Reminders set on the Deadline Hub come first — the student asked for them.
       const reminderItems: BellItem[] = ((remR.data ?? []) as unknown as RemRow[]).map((r) => ({
         to: "/deadlines",
@@ -89,7 +93,7 @@ export default function ActionBell() {
       for (const a of ((apR.data ?? []) as unknown as AppRow[]).slice(0, 10)) {
         if (["Rejected", "Withdrawn"].includes(a.status) || !a.admission_deadline) continue;
         const days = Math.ceil((new Date(a.admission_deadline).getTime() - now) / 86400000);
-        if (days < 0 || days > 30) continue;
+        if (days < 0 || days > lead) continue;
         const who = a.universities?.name ?? a.program ?? "Application";
         deadlines.push({
           to: "/applications",
@@ -136,7 +140,7 @@ export default function ActionBell() {
         if (cancelled) return;
         for (const s of ((sc ?? []) as unknown as SchRow[])) {
           const d = daysLeft(s.deadline);
-          if (d === null || d < 0 || d > 30) continue;
+          if (d === null || d < 0 || d > lead) continue;
           scholarshipItems.push({
             to: "/scholarships",
             title: d === 0 ? `Scholarship closes today — ${s.name}` : `Scholarship closes in ${d}d — ${s.name}`,
@@ -151,7 +155,7 @@ export default function ActionBell() {
       for (const d of ((docR.data ?? []) as unknown as DocExpiryRow[])) {
         if (!d.expires_on) continue;
         const days = daysLeft(d.expires_on);
-        if (days === null || days > 30) continue;
+        if (days === null || days > lead) continue;
         expiryItems.push({
           to: "/documents",
           title: days < 0 ? `${d.label} has expired` : `${d.label} expires in ${days}d`,

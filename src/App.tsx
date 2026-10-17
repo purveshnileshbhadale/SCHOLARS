@@ -21,6 +21,8 @@ import Mentor from "./pages/Mentor";
 import Settings from "./pages/Settings";
 import ResetPassword from "./pages/ResetPassword";
 import Sop from "./pages/Sop";
+import CostOfLiving from "./pages/CostOfLiving";
+import Cv from "./pages/Cv";
 import PublicProfile from "./pages/PublicProfile";
 import CounsellorHome from "./pages/counsellor/CounsellorHome";
 import CounsellorStudent from "./pages/counsellor/CounsellorStudent";
@@ -62,6 +64,8 @@ export default function App() {
       <Route path="/universities" element={<Guard><Universities /></Guard>} />
       <Route path="/scholarships" element={<Guard><Scholarships /></Guard>} />
       <Route path="/tools" element={<Guard><Tools /></Guard>} />
+      <Route path="/cost-of-living" element={<Guard><CostOfLiving /></Guard>} />
+      <Route path="/cv" element={<Guard><Cv /></Guard>} />
       <Route path="/mentor" element={<Guard><Mentor /></Guard>} />
       <Route path="/counsellors" element={<Guard><Counsellors /></Guard>} />
       <Route path="/bookings" element={<Guard><Bookings /></Guard>} />

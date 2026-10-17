@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
-import type { Application, ApplicationDocument, Booking, Shortlist, ShortlistItem, StudentChecklistItem, StudentProfile, University } from "../lib/types";
+import type { Application, ApplicationDocument, Booking, OfferCondition, Shortlist, ShortlistItem, StudentChecklistItem, StudentProfile, University, VisaChecklist } from "../lib/types";
 import { buildCounsellorWhatsAppMessage, waMeUrl, COUNSELLOR_WHATSAPP_NUMBER } from "../lib/config";
 import { sopStats } from "../lib/sopQuestions";
 import { money, tierBadge } from "../lib/utils";
+import { VISA_TEMPLATES, seedVisaItems, visaCountryKey } from "../lib/visaTemplates";
 import { Badge, Button, Card, DeadlineChip, Empty, ErrorNote, Field, Input, PageHeader, Select, Spinner, Textarea } from "../components/ui";
 
 type StepStatus = "completed" | "in-progress" | "action" | "pending";
@@ -46,6 +47,10 @@ export default function Applications() {
   const [apps, setApps] = useState<Application[]>([]);
   const [docs, setDocs] = useState<ApplicationDocument[]>([]);
   const [visa, setVisa] = useState<StudentChecklistItem[]>([]);
+  const [conditions, setConditions] = useState<OfferCondition[]>([]);
+  const [visaLists, setVisaLists] = useState<VisaChecklist[]>([]);
+  const [condInput, setCondInput] = useState<Record<string, string>>({});
+  const [visaPick, setVisaPick] = useState<Record<string, string>>({});
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -68,7 +73,7 @@ export default function Applications() {
   const loadAll = useCallback(async () => {
     if (!session) return;
     const uid = session.user.id;
-    const [{ data: sl }, { data: sop }, { data: bk }, { data: ap }, { data: tok }, { data: dc }, { data: vi }] = await Promise.all([
+    const [{ data: sl }, { data: sop }, { data: bk }, { data: ap }, { data: tok }, { data: dc }, { data: vi }, { data: oc }, { data: vcl }] = await Promise.all([
       supabase.from("shortlists").select("*").eq("student_id", uid).order("generated_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("sop_responses").select("answers").eq("student_id", uid).maybeSingle(),
       supabase.from("bookings").select("*").in("status", ["paid", "scheduled", "completed"]).order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -76,6 +81,8 @@ export default function Applications() {
       supabase.from("profile_shares").select("token").eq("is_active", true).limit(1).maybeSingle(),
       supabase.from("application_documents").select("*").order("created_at", { ascending: true }),
       supabase.from("student_checklist_items").select("*").order("created_at", { ascending: true }),
+      supabase.from("offer_conditions").select("*").order("created_at", { ascending: true }),
+      supabase.from("visa_checklists").select("*"),
     ]);
     setShortlist((sl as Shortlist) ?? null);
     setSopAnswers((sop?.answers as Record<string, string>) ?? {});
@@ -83,9 +90,14 @@ export default function Applications() {
     setApps((ap as Application[]) ?? []);
     setDocs((dc as ApplicationDocument[]) ?? []);
     setVisa((vi as StudentChecklistItem[]) ?? []);
+    setConditions((oc as OfferCondition[]) ?? []);
+    setVisaLists((vcl as VisaChecklist[]) ?? []);
     setShareToken(tok?.token ?? null);
-    if (sl?.result?.items?.length) {
-      const { data: u } = await supabase.from("universities").select("*").in("id", sl.result.items.map((i: ShortlistItem) => i.university_id));
+    const appUniIds = ((ap as Application[]) ?? []).map((a) => a.university_id).filter(Boolean) as string[];
+    const slIds = (sl?.result?.items ?? []).map((i: ShortlistItem) => i.university_id);
+    const uniIds = [...new Set([...appUniIds, ...slIds])];
+    if (uniIds.length) {
+      const { data: u } = await supabase.from("universities").select("*").in("id", uniIds);
       setUnis((u as University[]) ?? []);
     }
   }, [session]);
@@ -328,6 +340,63 @@ export default function Applications() {
   async function updateMilestone(id: string, patch: Partial<Application>) {
     setApps((cur) => cur.map((x) => (x.id === id ? { ...x, ...patch } : x)));
     const { error } = await supabase.from("applications").update(patch).eq("id", id);
+    if (error) {
+      setErr(error.message);
+      await loadAll();
+    }
+  }
+
+  // Feature: offer conditions tracker (conditional offers)
+  async function addCondition(appId: string) {
+    const label = (condInput[appId] ?? "").trim();
+    if (!label) return;
+    setCondInput({ ...condInput, [appId]: "" });
+    const { error } = await supabase.from("offer_conditions").insert({ application_id: appId, label });
+    if (error) setErr(error.message);
+    else await loadAll();
+  }
+
+  async function toggleCondition(c: OfferCondition) {
+    setConditions((cur) => cur.map((x) => (x.id === c.id ? { ...x, met: !c.met } : x)));
+    const { error } = await supabase
+      .from("offer_conditions")
+      .update({ met: !c.met, met_on: !c.met ? new Date().toISOString().slice(0, 10) : null })
+      .eq("id", c.id);
+    if (error) {
+      setErr(error.message);
+      await loadAll();
+    }
+  }
+
+  async function removeCondition(id: string) {
+    if (!confirm("Remove this condition?")) return;
+    await supabase.from("offer_conditions").delete().eq("id", id);
+    setConditions((cur) => cur.filter((x) => x.id !== id));
+  }
+
+  // Feature: visa document checklist per application (country template)
+  function appCountryKey(a: Application): string | null {
+    const uni = unis.find((u) => u.id === a.university_id);
+    return visaCountryKey(uni?.country);
+  }
+
+  async function startVisaChecklist(a: Application) {
+    const key = visaPick[a.id] || appCountryKey(a);
+    if (!key) return;
+    const { error } = await supabase
+      .from("visa_checklists")
+      .upsert({ application_id: a.id, country: key, items: seedVisaItems(key), updated_at: new Date().toISOString() }, { onConflict: "application_id" });
+    if (error) setErr(error.message);
+    else await loadAll();
+  }
+
+  async function toggleVisaItem(list: VisaChecklist, itemId: string) {
+    const items = list.items.map((it) => (it.id === itemId ? { ...it, done: !it.done } : it));
+    setVisaLists((cur) => cur.map((x) => (x.id === list.id ? { ...x, items } : x)));
+    const { error } = await supabase
+      .from("visa_checklists")
+      .update({ items, updated_at: new Date().toISOString() })
+      .eq("id", list.id);
     if (error) {
       setErr(error.message);
       await loadAll();
@@ -775,8 +844,122 @@ export default function Applications() {
                       <p className="mt-1.5 text-[11px] text-slate-400">
                         Accept-by dates surface in your Deadline Hub — record only what you've actually received.
                       </p>
+                      {(() => {
+                        const rows = conditions.filter((c) => c.application_id === a.id);
+                        const metCount = rows.filter((c) => c.met).length;
+                        const allMet = rows.length > 0 && metCount === rows.length;
+                        return (
+                          <div className="mt-3 border-t border-slate-200 pt-2.5">
+                            <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
+                              <span>Offer conditions</span>
+                              {rows.length ? (
+                                <span className={allMet ? "text-emerald-700" : "text-slate-500"}>
+                                  {allMet ? "All met — ready to accept" : `${metCount}/${rows.length} met`}
+                                </span>
+                              ) : null}
+                            </div>
+                            {rows.length ? (
+                              <ul className="mt-1.5 space-y-1">
+                                {rows.map((c) => (
+                                  <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
+                                    <label className="flex min-w-0 items-center gap-2">
+                                      <input type="checkbox" checked={c.met} onChange={() => toggleCondition(c)} className="size-4 rounded border-slate-300 text-emerald-600" />
+                                      <span className={c.met ? "text-slate-400 line-through" : "text-slate-700"}>{c.label}</span>
+                                    </label>
+                                    <button className="text-xs font-semibold text-rose-500 hover:text-rose-700" onClick={() => removeCondition(c.id)}>
+                                      Remove
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="mt-1 text-[11px] text-slate-400">
+                                e.g. “IELTS 7.0 (no band below 6.5)”, “Final transcripts”, “ATAS clearance”.
+                              </p>
+                            )}
+                            <div className="mt-2 flex gap-2">
+                              <Input
+                                className="max-w-xs"
+                                value={condInput[a.id] ?? ""}
+                                placeholder="Add a condition from your offer letter"
+                                onChange={(e) => setCondInput({ ...condInput, [a.id]: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") addCondition(a.id);
+                                }}
+                              />
+                              <Button variant="ghost" className="px-3" onClick={() => addCondition(a.id)}>
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   ) : null}
+                  {(() => {
+                    const list = visaLists.find((v) => v.application_id === a.id);
+                    if (list) {
+                      const done = list.items.filter((i) => i.done).length;
+                      const tpl = VISA_TEMPLATES[list.country];
+                      const pct = list.items.length ? Math.round((done / list.items.length) * 100) : 0;
+                      return (
+                        <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50/50 p-3">
+                          <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                            <span>Visa checklist — {tpl?.label ?? list.country}</span>
+                            <span className={done === list.items.length ? "text-emerald-700" : "text-slate-500"}>
+                              {done}/{list.items.length} · {pct}%
+                            </span>
+                          </div>
+                          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
+                            <div className="h-full rounded-full bg-sky-500 transition-all" style={{ width: `${pct}%` }} />
+                          </div>
+                          <ul className="mt-2 space-y-1">
+                            {list.items.map((it) => (
+                              <li key={it.id}>
+                                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                                  <input type="checkbox" checked={it.done} onChange={() => toggleVisaItem(list, it.id)} className="size-4 rounded border-slate-300 text-sky-600" />
+                                  <span className={it.done ? "text-slate-400 line-through" : "text-slate-700"}>{it.label}</span>
+                                </label>
+                              </li>
+                            ))}
+                          </ul>
+                          {tpl ? (
+                            <p className="mt-2 text-[11px] text-slate-500">
+                              {tpl.note} Official source: {tpl.official}.
+                            </p>
+                          ) : null}
+                        </div>
+                      );
+                    }
+                    const key = appCountryKey(a);
+                    return (
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {key ? (
+                          <Button variant="ghost" className="px-3" onClick={() => startVisaChecklist(a)}>
+                            Start visa checklist ({VISA_TEMPLATES[key]?.label ?? key})
+                          </Button>
+                        ) : (
+                          <>
+                            <Select
+                              className="max-w-[16rem]"
+                              value={visaPick[a.id] ?? ""}
+                              onChange={(e) => setVisaPick({ ...visaPick, [a.id]: e.target.value })}
+                            >
+                              <option value="">Choose visa destination…</option>
+                              {Object.values(VISA_TEMPLATES).map((t) => (
+                                <option key={t.key} value={t.key}>
+                                  {t.label}
+                                </option>
+                              ))}
+                            </Select>
+                            <Button variant="ghost" className="px-3" disabled={!visaPick[a.id]} onClick={() => startVisaChecklist(a)}>
+                              Start checklist
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {(() => {
                     const rows = docs.filter((d) => d.application_id === a.id);
                     if (!rows.length)

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
 import { getTheme, setTheme, type Theme } from "../lib/theme";
-import { Button, Card, ErrorNote, Field, Input, PageHeader } from "../components/ui";
+import { Button, Card, ErrorNote, Field, Input, PageHeader, Select } from "../components/ui";
 
 export default function Settings() {
   const { session, profile, studentProfile, refresh, signOut } = useAuth();
@@ -69,6 +69,17 @@ export default function Settings() {
   function applyTheme(t: Theme) {
     setTheme(t);
     setThemeState(t);
+  }
+
+  // ---- Feature 55: notification preferences (digest opt-out + reminder window) ----
+  async function saveNotify(patch: { email_digest_enabled?: boolean; reminder_lead_days?: number }) {
+    if (!session) return;
+    setBusy("notify");
+    setErr(null);
+    const { error } = await supabase.from("profiles").update(patch).eq("id", session.user.id);
+    if (error) setErr(error.message);
+    else await refresh();
+    setBusy(null);
   }
 
   // ---- Feature 45: export everything this account owns, as one JSON file ----
@@ -217,6 +228,47 @@ export default function Settings() {
           <Button variant={theme === "dark" ? "primary" : "ghost"} className="px-5" onClick={() => applyTheme("dark")}>
             Dark
           </Button>
+        </div>
+      </Card>
+
+      {/* Feature 55: notification preferences */}
+      <Card>
+        <h2 className="font-bold text-slate-900">Notifications</h2>
+        <p className="mt-1 text-xs text-slate-500">Deadline digest email and how early reminders start shouting.</p>
+        <div className="mt-4 space-y-4">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 rounded border-slate-300 text-emerald-600"
+              checked={profile?.email_digest_enabled ?? true}
+              disabled={busy === "notify"}
+              onChange={(e) => saveNotify({ email_digest_enabled: e.target.checked })}
+            />
+            <span>
+              <span className="text-sm font-semibold text-slate-800">Weekly deadline digest email</span>
+              <span className="block text-xs text-slate-500">
+                One email when deadlines, sessions or reminders fall due. Only sent if email is configured on the server.
+              </span>
+            </span>
+          </label>
+          <label className="block text-xs font-semibold text-slate-600">
+            Remind me this many days before a deadline
+            <Select
+              className="mt-1 max-w-56"
+              value={String(profile?.reminder_lead_days ?? 30)}
+              disabled={busy === "notify"}
+              onChange={(e) => saveNotify({ reminder_lead_days: Number(e.target.value) })}
+            >
+              {[7, 14, 30, 60, 90].map((d) => (
+                <option key={d} value={d}>
+                  {d} days
+                </option>
+              ))}
+            </Select>
+            <span className="mt-1 block font-normal text-slate-400">
+              Controls the action bell window and calendar alarm timing.
+            </span>
+          </label>
         </div>
       </Card>
 

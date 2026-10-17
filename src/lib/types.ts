@@ -8,6 +8,8 @@ export interface Profile {
   email: string | null;
   phone: string | null;
   created_at: string;
+  email_digest_enabled?: boolean;
+  reminder_lead_days?: number;
 }
 
 export interface StudentProfile {
@@ -240,4 +242,48 @@ export interface LorRequest {
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface SopVersion {
+  id: string;
+  student_id: string;
+  label: string;
+  answers: Record<string, string>;
+  word_count: number;
+  created_at: string;
+}
+
+export interface InterviewPractice {
+  id: string;
+  student_id: string;
+  interview_type: string;
+  question: string;
+  answer: string;
+  score: number | null;
+  feedback: string;
+  created_at: string;
+}
+
+export interface VisaChecklistItem {
+  id: string;
+  label: string;
+  done: boolean;
+}
+
+export interface VisaChecklist {
+  id: string;
+  application_id: string;
+  country: string;
+  items: VisaChecklistItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OfferCondition {
+  id: string;
+  application_id: string;
+  label: string;
+  met: boolean;
+  met_on: string | null;
+  created_at: string;
 }

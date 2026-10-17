@@ -3,7 +3,8 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
 import { waShareUrl } from "../lib/config";
 import { cx } from "../lib/utils";
-import { Button, Card, ErrorNote, Field, Input, Select, Spinner, Textarea } from "../components/ui";
+import type { InterviewPractice } from "../lib/types";
+import { Badge, Button, Card, ErrorNote, Field, Input, Select, Spinner, Textarea } from "../components/ui";
 
 type FieldType = "text" | "textarea" | "select";
 
@@ -556,20 +557,46 @@ function Markdown({ text }: { text: string }) {
 
 /* ------------------------------ page ---------------------------------- */
 
+function extractScore(text: string): number | null {
+  const m = text.match(/(\d{1,2}(?:\.\d)?)\s*(?:\/|out of)\s*10\b/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) && n >= 0 && n <= 10 ? Math.round(n) : null;
+}
+
 export default function Mentor() {
-  const { studentProfile } = useAuth();
+  const { session, studentProfile } = useAuth();
   const [active, setActive] = useState(MODULES[0].key);
   const [forms, setForms] = useState<Record<string, Record<string, string>>>({});
   const [outputs, setOutputs] = useState<Record<string, string | null>>({});
   const [errs, setErrs] = useState<Record<string, string | null>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [practice, setPractice] = useState<InterviewPractice[]>([]);
+  const [practiceNote, setPracticeNote] = useState<string | null>(null);
 
   const mod = useMemo(() => MODULES.find((m) => m.key === active) ?? MODULES[0], [active]);
   const form = forms[active] ?? {};
   const output = outputs[active] ?? null;
   const err = errs[active] ?? null;
   const busy = busyKey === active;
+
+  async function loadPractice() {
+    if (!session) return;
+    const { data } = await supabase
+      .from("interview_practice")
+      .select("*")
+      .eq("student_id", session.user.id)
+      .order("created_at", { ascending: false })
+      .limit(6);
+    setPractice((data as InterviewPractice[]) ?? []);
+  }
+
+  // Practice log follows the interview module.
+  useEffect(() => {
+    if (active === "interview") loadPractice();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, session]);
 
   // Seed each module's form once (defaults + prefilled major), never overwriting input.
   useEffect(() => {
@@ -602,7 +629,25 @@ export default function Mentor() {
         const body = error.context ? await error.context.json().catch(() => null) : null;
         throw new Error(body?.error ?? "ScholarAI is unavailable right now.");
       }
-      setOutputs((o) => ({ ...o, [active]: data.output as string }));
+      const out = data.output as string;
+      setOutputs((o) => ({ ...o, [active]: out }));
+      // Interview evaluations are logged so the student can track improvement.
+      if (active === "interview" && session && /evaluate/i.test(form.mode ?? "") && form.question && form.answer) {
+        const score = extractScore(out);
+        const { error: logErr } = await supabase.from("interview_practice").insert({
+          student_id: session.user.id,
+          interview_type: form.interview_type ?? "Admission",
+          question: form.question,
+          answer: form.answer,
+          score,
+          feedback: out,
+        });
+        if (!logErr) {
+          setPracticeNote("Saved to your practice log below.");
+          await loadPractice();
+          setTimeout(() => setPracticeNote(null), 3000);
+        }
+      }
     } catch (e) {
       setErrs((er) => ({ ...er, [active]: e instanceof Error ? e.message : "Something went wrong" }));
     } finally {
@@ -793,6 +838,9 @@ export default function Mentor() {
                 {busy ? "ScholarAI is thinking…" : "Ask ScholarAI"}
               </Button>
             </div>
+            {active === "interview" && practiceNote ? (
+              <p className="mt-2 text-xs font-semibold text-emerald-700">{practiceNote}</p>
+            ) : null}
           </Card>
 
           {/* response */}
@@ -851,6 +899,66 @@ export default function Mentor() {
               )}
             </div>
           </Card>
+
+          {active === "interview" ? (
+            <Card className="xl:col-span-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-bold text-slate-900">Practice log</h2>
+                  <p className="text-xs text-slate-500">
+                    Every answer you evaluate is saved here — watch your scores climb. Last {practice.length} shown.
+                  </p>
+                </div>
+                {(() => {
+                  const scored = practice.filter((p) => p.score != null);
+                  if (!scored.length) return null;
+                  const avg = Math.round((scored.reduce((s, p) => s + (p.score ?? 0), 0) / scored.length) * 10) / 10;
+                  const best = Math.max(...scored.map((p) => p.score ?? 0));
+                  return (
+                    <div className="flex gap-2 text-center">
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5">
+                        <p className="text-lg font-extrabold text-emerald-800">{avg}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-emerald-600">avg /10</p>
+                      </div>
+                      <div className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-1.5">
+                        <p className="text-lg font-extrabold text-sky-800">{best}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-sky-600">best /10</p>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+              {practice.length === 0 ? (
+                <p className="mt-3 text-sm text-slate-500">
+                  Run “Evaluate my answer” once and it lands here automatically.
+                </p>
+              ) : (
+                <ul className="mt-3 divide-y divide-slate-100">
+                  {practice.map((p) => (
+                    <li key={p.id} className="py-2.5 text-sm">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <p className="min-w-0 font-semibold text-slate-800">{p.question.slice(0, 140)}</p>
+                        <Badge
+                          className={
+                            (p.score ?? 0) >= 7
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                              : (p.score ?? 0) >= 5
+                                ? "border-amber-200 bg-amber-50 text-amber-800"
+                                : "border-rose-200 bg-rose-50 text-rose-700"
+                          }
+                        >
+                          {p.score != null ? `${p.score}/10` : "unscored"}
+                        </Badge>
+                      </div>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {p.interview_type} · {new Date(p.created_at).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          ) : null}
         </div>
       </div>
     </div>
