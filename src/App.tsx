@@ -1,8 +1,9 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Suspense, lazy, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { homeFor, useAuth } from "./lib/auth";
 import type { Role } from "./lib/types";
-import { Spinner } from "./components/ui";
+import { supabase } from "./lib/supabase";
+import { Button, Card, ErrorNote, Field, Input, Spinner } from "./components/ui";
 import Shell from "./components/Shell";
 import Landing from "./pages/Landing";
 import AuthPage from "./pages/Auth";
@@ -35,9 +36,82 @@ import AdminBookings from "./pages/admin/AdminBookings";
 // SheetJS is only needed on the admin import screen — keep it out of the main chunk.
 const AdminImport = lazy(() => import("./pages/admin/AdminImport"));
 
+// AAL2 gate: if the user has a verified TOTP factor, every session that lands
+// at aal1 (password OR OAuth) must enter a code before the app opens.
+function MfaChallenge({ onPass }: { onPass: () => void }) {
+  const [code, setCode] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    setBusy(true);
+    try {
+      const { data: mf } = await supabase.auth.mfa.listFactors();
+      const factor = (mf?.all ?? []).find((f) => f.factor_type === "totp" && f.status === "verified");
+      if (!factor) throw new Error("No authenticator enrolled. Log out, then log back in.");
+      const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+      if (error) throw error;
+      onPass();
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : "Invalid code — try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <Card className="w-full max-w-md">
+        <h1 className="text-xl font-bold text-slate-900">Two-factor check</h1>
+        <p className="mt-1 text-sm text-slate-500">Enter the 6-digit code from your authenticator app to continue.</p>
+        <form onSubmit={submit} className="mt-4 space-y-4">
+          <Field label="Authentication code">
+            <Input
+              inputMode="numeric"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              maxLength={6}
+              required
+              autoFocus
+              placeholder="123456"
+            />
+          </Field>
+          <ErrorNote>{err}</ErrorNote>
+          <Button type="submit" className="w-full" disabled={busy || code.length !== 6}>
+            {busy ? "Verifying…" : "Verify and continue"}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+}
+
 function Guard({ role, children }: { role?: Role; children: ReactNode }) {
   const { session, profile, loading } = useAuth();
   const loc = useLocation();
+  const [aal, setAal] = useState<"checking" | "pass" | "challenge">("checking");
+
+  useEffect(() => {
+    let live = true;
+    if (!session) {
+      setAal("checking");
+      return;
+    }
+    supabase.auth.mfa
+      .getAuthenticatorAssuranceLevel()
+      .then(({ data }) => {
+        if (live) setAal(data?.currentLevel === "aal1" && data?.nextLevel === "aal2" ? "challenge" : "pass");
+      })
+      .catch(() => {
+        if (live) setAal("pass");
+      });
+    return () => {
+      live = false;
+    };
+  }, [session?.access_token]);
+
   if (loading)
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -45,6 +119,13 @@ function Guard({ role, children }: { role?: Role; children: ReactNode }) {
       </div>
     );
   if (!session) return <Navigate to="/login" replace state={{ from: loc.pathname }} />;
+  if (aal === "checking")
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner className="size-8" />
+      </div>
+    );
+  if (aal === "challenge") return <MfaChallenge onPass={() => setAal("pass")} />;
   if (role && profile?.role !== role) return <Navigate to={homeFor(profile?.role)} replace />;
   return <Shell>{children}</Shell>;
 }

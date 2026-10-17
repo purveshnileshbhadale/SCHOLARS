@@ -4,7 +4,7 @@ import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../lib/auth";
 import type { Booking, CounsellorNote, Profile, Shortlist, StudentProfile, University } from "../../lib/types";
 import { money } from "../../lib/utils";
-import { Badge, Button, Card, ErrorNote, Field, PageHeader, Spinner, Textarea } from "../../components/ui";
+import { Badge, Button, Card, ErrorNote, Field, Input, PageHeader, Spinner, Textarea } from "../../components/ui";
 
 export default function CounsellorStudent() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +17,7 @@ export default function CounsellorStudent() {
   const [unis, setUnis] = useState<University[]>([]);
   const [notes, setNotes] = useState<CounsellorNote[]>([]);
   const [noteText, setNoteText] = useState("");
+  const [noteQuery, setNoteQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -95,6 +96,9 @@ export default function CounsellorStudent() {
     if (error) setErr(error.message);
     else setBooking({ ...booking, status: status as Booking["status"] });
   }
+
+  const noteQ = noteQuery.trim().toLowerCase();
+  const shownNotes = noteQ ? notes.filter((n) => n.note.toLowerCase().includes(noteQ)) : notes;
 
   if (loading)
     return (
@@ -199,7 +203,17 @@ export default function CounsellorStudent() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <h2 className="font-bold text-slate-900">Notes</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-bold text-slate-900">Notes{notes.length ? ` (${notes.length})` : ""}</h2>
+            {notes.length > 1 ? (
+              <Input
+                className="max-w-56"
+                placeholder="Search notes…"
+                value={noteQuery}
+                onChange={(e) => setNoteQuery(e.target.value)}
+              />
+            ) : null}
+          </div>
           <form onSubmit={addNote} className="mt-3">
             <Field label="Add a note">
               <Textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Private note — visible to counsellors and admins only." />
@@ -209,8 +223,11 @@ export default function CounsellorStudent() {
               Save note
             </Button>
           </form>
+          {noteQ && shownNotes.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-500">No notes match “{noteQuery.trim()}”.</p>
+          ) : null}
           <ul className="mt-4 space-y-2">
-            {notes.map((n) => (
+            {shownNotes.map((n) => (
               <li key={n.id} className="rounded-xl bg-slate-50 px-3 py-2 text-sm">
                 <p className="whitespace-pre-wrap text-slate-800">{n.note}</p>
                 <p className="mt-1 text-xs text-slate-400">{new Date(n.created_at).toLocaleString("en-AU")}</p>

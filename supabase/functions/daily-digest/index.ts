@@ -5,10 +5,10 @@
 // committed to the repo). The function reads it with the service
 // role and rejects anything else.
 //
-// Collects deadlines due in the next 7 days (applications),
-// sessions and reminders due in the next 24h, groups them per
-// student, and emails a digest — ONLY if RESEND_API_KEY is set.
-// Without the key it returns a graceful "skipped" result.
+// Collects deadlines due in the next 7 days (applications), scholarships
+// for unis the student shortlisted/saved, sessions and reminders due in the
+// next 24h, groups them per student, and emails a digest — ONLY if
+// RESEND_API_KEY is set. Without the key it returns a graceful "skipped".
 // ============================================================
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
   const in7 = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
   const in24 = new Date(Date.now() + 86_400_000).toISOString();
 
-  const [{ data: apps }, { data: books }, { data: rems }] = await Promise.all([
+  const [{ data: apps }, { data: books }, { data: rems }, { data: sls }, { data: savs }, { data: schs }] = await Promise.all([
     admin
       .from("applications")
       .select("student_id, admission_deadline, status, program, universities(name)")
@@ -58,6 +58,20 @@ Deno.serve(async (req) => {
       .gte("due_at", new Date().toISOString())
       .lte("due_at", in24)
       .limit(200),
+    // Feature 60: scholarship deadlines for unis the student actually follows.
+    admin
+      .from("shortlists")
+      .select("student_id, result")
+      .order("generated_at", { ascending: false })
+      .limit(100),
+    admin.from("saved_universities").select("student_id, university_id").limit(2000),
+    admin
+      .from("scholarships")
+      .select("name, deadline, university_id")
+      .not("deadline", "is", null)
+      .gte("deadline", today)
+      .lte("deadline", in7)
+      .limit(200),
   ]);
 
   const byUser = new Map<string, string[]>();
@@ -78,6 +92,27 @@ Deno.serve(async (req) => {
   }
   for (const r of (rems ?? []) as { user_id: string; title: string }[]) {
     push(r.user_id, `Reminder — ${r.title}`);
+  }
+
+  // Feature 60: reverse map uni → students who shortlisted or saved it.
+  const uniStudents = new Map<string, Set<string>>();
+  const follow = (uid: string, uniId: string) => {
+    let s = uniStudents.get(uniId);
+    if (!s) {
+      s = new Set<string>();
+      uniStudents.set(uniId, s);
+    }
+    s.add(uid);
+  };
+  for (const s of (sls ?? []) as { student_id: string; result?: { items?: { university_id?: string }[] } }[]) {
+    for (const it of s.result?.items ?? []) if (it.university_id) follow(s.student_id, it.university_id);
+  }
+  for (const s of (savs ?? []) as { student_id: string; university_id: string }[]) follow(s.student_id, s.university_id);
+  for (const sc of (schs ?? []) as { name: string; deadline: string; university_id?: string | null }[]) {
+    if (!sc.university_id) continue;
+    const followers = uniStudents.get(sc.university_id);
+    if (!followers) continue;
+    for (const sid of followers) push(sid, `Scholarship deadline ${sc.deadline} — ${sc.name}`);
   }
 
   let dueUsers = [...byUser.keys()];

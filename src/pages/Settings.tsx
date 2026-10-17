@@ -18,6 +18,78 @@ export default function Settings() {
   const [theme, setThemeState] = useState<Theme>(getTheme());
   const [confirmText, setConfirmText] = useState("");
 
+  // ---- Feature 59: TOTP two-factor authentication ----
+  type MfaFactor = { id: string; factor_type: string; status: string };
+  const [factors, setFactors] = useState<MfaFactor[]>([]);
+  const [enrollId, setEnrollId] = useState<string | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
+  const [secret, setSecret] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+
+  useEffect(() => {
+    if (!session) return;
+    supabase.auth.mfa
+      .listFactors()
+      .then(({ data }) => setFactors((data?.all ?? []) as MfaFactor[]))
+      .catch(() => setFactors([]));
+  }, [session?.access_token]);
+
+  async function startEnroll() {
+    setErr(null);
+    setNote(null);
+    setBusy("mfa");
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Authenticator app" });
+    setBusy(null);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    setEnrollId(data.id);
+    setQr(data.totp.qr_code);
+    setSecret(data.totp.secret);
+  }
+
+  async function confirmEnroll() {
+    if (!enrollId) return;
+    setErr(null);
+    setNote(null);
+    setBusy("mfa-v");
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: enrollId, code: mfaCode });
+    setBusy(null);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    cancelEnroll();
+    setNote("Two-factor authentication is on — you'll enter a code at every login.");
+    const { data } = await supabase.auth.mfa.listFactors();
+    setFactors((data?.all ?? []) as MfaFactor[]);
+  }
+
+  function cancelEnroll() {
+    setEnrollId(null);
+    setQr(null);
+    setSecret(null);
+    setMfaCode("");
+  }
+
+  async function removeFactor(id: string) {
+    setErr(null);
+    setNote(null);
+    setBusy("mfa-x");
+    const { error } = await supabase.auth.mfa.unenroll({ factorId: id });
+    setBusy(null);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    setNote("Two-factor authentication turned off.");
+    const { data } = await supabase.auth.mfa.listFactors();
+    setFactors((data?.all ?? []) as MfaFactor[]);
+  }
+
+  const verifiedTotp = factors.find((f) => f.factor_type === "totp" && f.status === "verified");
+
   useEffect(() => {
     if (profile) {
       setName(profile.name ?? "");
@@ -270,6 +342,56 @@ export default function Settings() {
             </span>
           </label>
         </div>
+      </Card>
+
+      {/* Feature 59: TOTP two-factor authentication */}
+      <Card>
+        <h2 className="font-bold text-slate-900">Two-factor authentication</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Protect your account with a 6-digit code from an authenticator app (Google Authenticator, Authy, 1Password…).
+        </p>
+        {enrollId ? (
+          <div className="mt-4 space-y-3">
+            {qr ? (
+              <div
+                className="w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 [&_svg]:h-full [&_svg]:w-full"
+                dangerouslySetInnerHTML={{ __html: qr }}
+              />
+            ) : null}
+            <div>
+              <p className="text-xs font-semibold text-slate-600">Can't scan? Add it manually:</p>
+              <code className="mt-1 block break-all rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-700">{secret ?? ""}</code>
+            </div>
+            <Field label="Enter the 6-digit code to confirm">
+              <Input
+                inputMode="numeric"
+                maxLength={6}
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="123456"
+              />
+            </Field>
+            <div className="flex gap-2">
+              <Button disabled={busy === "mfa-v" || mfaCode.length !== 6} onClick={confirmEnroll}>
+                {busy === "mfa-v" ? "Verifying…" : "Turn on"}
+              </Button>
+              <Button variant="ghost" disabled={busy === "mfa-v"} onClick={cancelEnroll}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : verifiedTotp ? (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2">
+            <span className="text-sm font-semibold text-emerald-800">On — a code is required at every login</span>
+            <Button variant="ghost" disabled={busy === "mfa-x"} onClick={() => removeFactor(verifiedTotp.id)}>
+              {busy === "mfa-x" ? "Turning off…" : "Turn off"}
+            </Button>
+          </div>
+        ) : (
+          <Button className="mt-4" disabled={busy === "mfa"} onClick={startEnroll}>
+            {busy === "mfa" ? "Preparing…" : "Set up authenticator app"}
+          </Button>
+        )}
       </Card>
 
       <Card>
