@@ -250,6 +250,13 @@ a {
     margin: 0;
     padding: 0;
   }
+  /* Sidebar layout: drop the offset so content fills the page. */
+  .md\:pl-64 {
+    padding-left: 0 !important;
+  }
+  aside {
+    display: none !important;
+  }
   /* Print-optimized tracker: interactive chrome out, content kept. */
   button {
     display: none !important;

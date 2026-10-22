@@ -31,6 +31,8 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Sop = lazy(() => import("./pages/Sop"));
 const CostOfLiving = lazy(() => import("./pages/CostOfLiving"));
 const Cv = lazy(() => import("./pages/Cv"));
+const GapReport = lazy(() => import("./pages/GapReport"));
+const Roadmap = lazy(() => import("./pages/Roadmap"));
 const CounsellorHome = lazy(() => import("./pages/counsellor/CounsellorHome"));
 const CounsellorBookings = lazy(() => import("./pages/counsellor/CounsellorBookings"));
 const CounsellorStudent = lazy(() => import("./pages/counsellor/CounsellorStudent"));
@@ -171,6 +173,8 @@ export default function App() {
         <Route path="/sop" element={<Guard><Sop /></Guard>} />
         <Route path="/community" element={<Guard><Community /></Guard>} />
         <Route path="/settings" element={<Guard><Settings /></Guard>} />
+        <Route path="/gaps" element={<Guard><GapReport /></Guard>} />
+        <Route path="/roadmap" element={<Guard><Roadmap /></Guard>} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/counsellor" element={<Guard role="counsellor"><CounsellorHome /></Guard>} />

@@ -20,28 +20,30 @@ import { corsHeaders, json } from "../_shared/cors.ts";
 // will supply. The {{PROFILE}} and {{UNIVERSITIES}} tokens are
 // substituted at runtime; keep them.
 // ------------------------------------------------------------
-const RECOMMENDATION_PROMPT = `You are Scholars Abroad's shortlisting engine. You recommend Australian universities to Indian students.
+const RECOMMENDATION_PROMPT = `You are Scholars Abroad's shortlisting engine. You recommend universities to Indian students.
 
-Rules — non-negotiable:
+CRITICAL RULE — BANDS ARE PRE-COMPUTED:
+Each university already has "computed_tier", "computed_fit_score" and "computed_note" set by deterministic rules.
+You MUST copy these EXACTLY into your output. Never change a tier or fit_score. Your only job is to:
+1. Pick the 10-12 best universities from the list (spread across tiers).
+2. Write a <=40-word "reasoning" for each explaining WHY it fits, using the computed_note and the student's profile.
+
+Other rules — non-negotiable:
 1. Recommend ONLY universities present in the UNIVERSITIES list. Use each university's exact "id" value as university_id. Never invent a university.
 2. Never invent or alter numbers (fees, ranks, living costs, English minimums). Copy them from the list where you include them.
-3. Classify each pick as exactly one tier:
-   - "reach": ambitious — student is near/below the bar or the university is much more expensive than budget
-   - "target": good match — student meets requirements and cost fits budget
-   - "safety": student comfortably exceeds requirements and cost is well within budget
-4. fit_score is 0-100: how well the university matches the student's academics, English scores, BUDGET, ranked priorities and career goal. Budget mismatches must hurt the score heavily.
-5. Respect the student's ranked priorities — if "Low tuition fee" is priority #1, cheap universities must score higher than prestigious-but-expensive ones.
-6. If the student needs a scholarship, prefer universities with scholarships in the list and mention them via scholarship_ids.
-7. Output STRICT JSON only — no markdown, no commentary, exactly this shape:
+3. Copy "computed_tier" into "tier" and "computed_fit_score" into "fit_score" for every item.
+4. Respect the student's ranked priorities in your reasoning text — if "Low tuition fee" is priority #1, mention cost in the reasoning.
+5. If the student needs a scholarship, prefer universities with scholarships in the list and mention them via scholarship_ids.
+6. Output STRICT JSON only — no markdown, no commentary, exactly this shape:
 {
   "summary": "2-3 sentence overall read of the student's position",
   "items": [
     {
       "university_id": "<uuid from list>",
       "name": "<name from list>",
-      "tier": "reach" | "target" | "safety",
-      "fit_score": <number 0-100>,
-      "reasoning": "<= 40 words, concrete: why this tier, what fits, what to watch",
+      "tier": "<copy computed_tier exactly>",
+      "fit_score": <copy computed_fit_score exactly>,
+      "reasoning": "<= 40 words, concrete: why this fits based on computed_note and the student's profile",
       "tuition_aud": <number from list>,
       "living_cost_aud": <number from list>,
       "post_study_work_years": <number from list or null>,
@@ -50,11 +52,12 @@ Rules — non-negotiable:
     }
   ]
 }
-Pick between 10 and 12 universities, spread across the three tiers (roughly 3-5 reach, 3-5 target, 2-4 safety). If the candidate pool is small, recommend every university that is a plausible fit rather than padding with bad matches.`;
+Pick between 10 and 12 universities. Spread them across the three tiers — include every safety you can, a solid block of targets, and a few reaches. If the candidate pool is small, recommend every university that is a plausible fit rather than padding with bad matches.`;
 
 interface DbUni {
   id: string;
   name: string;
+  country: string | null;
   city: string | null;
   qs_rank: number | null;
   cs_subject_rank: number | null;
@@ -169,17 +172,16 @@ Deno.serve(async (req) => {
     return json({ error: "You just generated a shortlist — wait a minute before regenerating." }, 429);
   }
 
-  // ---- SQL pre-filter (top 40) ----
+  // ---- SQL pre-filter (top 60, multi-country) ----
   const budgetLimit = Number(sp.budget_aud_per_year) * 1.3;
   let q = admin
     .from("universities")
     .select(
-      "id, name, city, qs_rank, cs_subject_rank, tuition_aud, living_cost_aud, ielts_min, toefl_min, pte_min, min_academic_requirement, intakes, cs_program_highlights, post_study_work_years",
+      "id, name, country, city, qs_rank, cs_subject_rank, tuition_aud, living_cost_aud, ielts_min, toefl_min, pte_min, min_academic_requirement, intakes, cs_program_highlights, post_study_work_years",
     )
-    .eq("country", "Australia")
     .or(`tuition_aud.is.null,tuition_aud.lte.${budgetLimit}`)
     .order("qs_rank", { ascending: true, nullsFirst: false })
-    .limit(40);
+    .limit(60);
   const { data: candidates, error: cErr } = await q;
   if (cErr) return json({ error: "Could not load universities: " + cErr.message }, 500);
 
@@ -190,6 +192,15 @@ Deno.serve(async (req) => {
     return total <= budgetLimit;
   });
 
+  // Track ruled-out universities with reasons (for the "Ruled out and why" tab).
+  const ruledOut: { name: string; reason: string }[] = [];
+  for (const u of candidates ?? []) {
+    if (!withinBudget.includes(u)) {
+      const total = Number(u.tuition_aud ?? 0) + Number(u.living_cost_aud ?? 0);
+      ruledOut.push({ name: u.name, reason: `Over budget (A$${Math.round(total).toLocaleString("en-AU")}/yr vs budget A$${Math.round(Number(sp.budget_aud_per_year)).toLocaleString("en-AU")})` });
+    }
+  }
+
   const meetsEnglish = withinBudget.filter((u: DbUni) => {
     if (sp.ielts != null && u.ielts_min != null && Number(sp.ielts) < Number(u.ielts_min)) return false;
     if (sp.toefl != null && u.toefl_min != null && Number(sp.toefl) < Number(u.toefl_min)) return false;
@@ -197,9 +208,19 @@ Deno.serve(async (req) => {
     return true;
   });
 
+  for (const u of withinBudget) {
+    if (!meetsEnglish.includes(u)) {
+      const reasons: string[] = [];
+      if (sp.ielts != null && u.ielts_min != null && Number(sp.ielts) < Number(u.ielts_min)) reasons.push(`IELTS ${sp.ielts} < ${u.ielts_min}`);
+      if (sp.toefl != null && u.toefl_min != null && Number(sp.toefl) < Number(u.toefl_min)) reasons.push(`TOEFL ${sp.toefl} < ${u.toefl_min}`);
+      if (sp.pte != null && u.pte_min != null && Number(sp.pte) < Number(u.pte_min)) reasons.push(`PTE ${sp.pte} < ${u.pte_min}`);
+      ruledOut.push({ name: u.name, reason: `English requirement not met (${reasons.join(", ") || "no matching test"})` });
+    }
+  }
+
   if (meetsEnglish.length === 0) {
     return json(
-      { error: "No Australian universities matched your budget and English scores. Try raising your budget or improving test scores." },
+      { error: "No universities matched your budget and English scores. Try raising your budget or improving test scores." },
       422,
     );
   }
@@ -234,23 +255,81 @@ Deno.serve(async (req) => {
     career_goal: sp.career_goal,
   };
 
-  const uniPayload = meetsEnglish.map((u: DbUni) => ({
-    id: u.id,
-    name: u.name,
-    city: u.city,
-    qs_rank: u.qs_rank,
-    cs_subject_rank: u.cs_subject_rank,
-    tuition_aud: u.tuition_aud,
-    living_cost_aud: u.living_cost_aud,
-    ielts_min: u.ielts_min,
-    toefl_min: u.toefl_min,
-    pte_min: u.pte_min,
-    min_academic_requirement: u.min_academic_requirement,
-    intakes: u.intakes,
-    cs_program_highlights: u.cs_program_highlights,
-    post_study_work_years: u.post_study_work_years,
-    scholarships: schByUni.get(u.id) ?? [],
-  }));
+  // ---- Deterministic banding (Engine 3, Phase A rules) ----
+  // Compute tier and fit_score from rules BEFORE the LLM — the model
+  // only writes the reasoning text. Same inputs → same band every time.
+  function toPct(raw: number | null, system: string | null): number | null {
+    if (raw == null) return null;
+    const s = (system ?? "cbse").toLowerCase();
+    if (s === "ib") return Math.min(100, Math.max(0, 53 + ((raw - 24) / 21) * 46));
+    if (s === "gpa" || s === "usgpa") return Math.min(100, raw * 25);
+    return Math.min(100, Math.max(0, raw));
+  }
+  const acadIdx = (() => {
+    const p10 = toPct(sp.class_10_marks, sp.grading_system);
+    const p12 = toPct(sp.class_12_marks, sp.grading_system);
+    if (p10 != null && p12 != null) return Math.round(p10 * 0.35 + p12 * 0.65);
+    return Math.round(p12 ?? p10 ?? 0);
+  })();
+
+  function bandFor(u: DbUni): { tier: string; fit: number; note: string } {
+    // Budget fit
+    const total = Number(u.tuition_aud ?? 0) + Number(u.living_cost_aud ?? 0);
+    const budget = Number(sp.budget_aud_per_year ?? 0);
+    const ratio = budget > 0 && total > 0 ? total / budget : 1;
+    const budgetScore = ratio <= 0.7 ? 95 : ratio <= 0.95 ? 80 : ratio <= 1.15 ? 60 : ratio <= 1.5 ? 35 : 10;
+
+    // Selectivity (QS rank as proxy)
+    const selScore = u.qs_rank == null ? 50 : u.qs_rank <= 30 ? 15 : u.qs_rank <= 100 ? 35 : u.qs_rank <= 250 ? 55 : u.qs_rank <= 500 ? 72 : 85;
+
+    // English headroom
+    let engScore = 60;
+    if (sp.ielts != null && u.ielts_min != null) engScore = Math.min(100, 60 + ((Number(sp.ielts) - Number(u.ielts_min)) / Number(u.ielts_min)) * 200);
+    else if (sp.toefl != null && u.toefl_min != null) engScore = Math.min(100, 60 + ((Number(sp.toefl) - Number(u.toefl_min)) / Number(u.toefl_min)) * 200);
+    else if (sp.pte != null && u.pte_min != null) engScore = Math.min(100, 60 + ((Number(sp.pte) - Number(u.pte_min)) / Number(u.pte_min)) * 200);
+
+    // Academic vs minimum (parse % from free text if present)
+    const minM = u.min_academic_requirement?.match(/(\d{2,3}(?:\.\d+)?)\s*%/);
+    const minPct = minM ? Number(minM[1]) : null;
+    const acadScore = minPct != null ? (acadIdx >= minPct + 15 ? 95 : acadIdx >= minPct + 5 ? 80 : acadIdx >= minPct ? 60 : acadIdx >= minPct - 5 ? 30 : 5) : acadIdx;
+
+    const composite = Math.round(acadScore * 0.3 + engScore * 0.2 + budgetScore * 0.25 + selScore * 0.25);
+
+    // Hard rules
+    if (u.qs_rank != null && u.qs_rank <= 30) return { tier: "reach", fit: composite, note: "Always Reach — QS rank under 30" };
+    if (minPct != null && acadIdx < minPct - 5) return { tier: "reach", fit: composite, note: "Below academic minimum" };
+
+    const tier = composite >= 72 && acadScore >= 60 && engScore >= 55 && budgetScore >= 50 ? "safety" : composite >= 48 ? "target" : "reach";
+    // Safety requires headroom above minimums
+    if (tier === "safety" && minPct != null && acadIdx < minPct + 10) return { tier: "target", fit: composite, note: "Safety blocked — academic headroom under 10 points" };
+    return { tier, fit: composite, note: "" };
+  }
+
+  const uniPayload = meetsEnglish.map((u: DbUni) => {
+    const band = bandFor(u);
+    return {
+      id: u.id,
+      name: u.name,
+      country: u.country,
+      city: u.city,
+      qs_rank: u.qs_rank,
+      cs_subject_rank: u.cs_subject_rank,
+      tuition_aud: u.tuition_aud,
+      living_cost_aud: u.living_cost_aud,
+      ielts_min: u.ielts_min,
+      toefl_min: u.toefl_min,
+      pte_min: u.pte_min,
+      min_academic_requirement: u.min_academic_requirement,
+      intakes: u.intakes,
+      cs_program_highlights: u.cs_program_highlights,
+      post_study_work_years: u.post_study_work_years,
+      // Pre-computed by rules — the LLM must NOT change these.
+      computed_tier: band.tier,
+      computed_fit_score: band.fit,
+      computed_note: band.note,
+      scholarships: schByUni.get(u.id) ?? [],
+    };
+  });
 
   const userMsg =
     "# STUDENT PROFILE\n" + JSON.stringify(profile, null, 2) +
@@ -297,6 +376,9 @@ Deno.serve(async (req) => {
       return {
         ...it,
         name: u.name,
+        // Enforce the pre-computed band — the LLM never supplies these.
+        tier: u.computed_tier,
+        fit_score: u.computed_fit_score,
         tuition_aud: u.tuition_aud,
         living_cost_aud: u.living_cost_aud,
         post_study_work_years: u.post_study_work_years,
@@ -310,6 +392,7 @@ Deno.serve(async (req) => {
     generated_at: new Date().toISOString(),
     summary: parsed.summary,
     items,
+    ruled_out: ruledOut.slice(0, 20),
   };
 
   const { data: saved, error: saveErr } = await admin

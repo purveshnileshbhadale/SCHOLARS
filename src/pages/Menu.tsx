@@ -5,13 +5,15 @@ import { PageHeader } from "../components/ui";
 
 /** One-line info shown for every section (feature: "all info in menu page"). */
 const INFO: Record<string, string> = {
-  "/dashboard": "AI-matched Australian universities with fit scores, tuition, living costs and intakes.",
+  "/dashboard": "AI-matched universities with fit scores, chance bands, tuition and intakes — rules-based, not guessed.",
   "/universities": "Browse the full directory — ranks, fees, entry requirements, intakes and highlights.",
   "/scholarships": "Scholarships for international students with amounts, eligibility and deadlines.",
   "/cost-of-living": "Compare monthly living costs across 12 cities, category by category.",
-  "/tools": "Entry-chance checker, score converters, eligibility screener and true degree cost.",
+  "/tools": "Entry-chance checker, score converters (IELTS↔TOEFL↔PTE, SAT↔ACT), eligibility screener and true degree cost.",
   "/mentor": "ScholarAI coach for SOPs, interviews, research topics, deadlines, GTE and more.",
   "/sop": "Structured SOP questionnaire with AI feedback, version history and compare view.",
+  "/gaps": "Where you stand against admitted-student benchmarks — gaps ranked by impact, fixability and urgency.",
+  "/roadmap": "Month-by-month plan built backwards from your deadlines. Tick tasks, pick intensity, re-plan as you progress.",
   "/applications": "Track every application — milestones, offer conditions and visa checklist.",
   "/documents": "Store and verify transcripts, IDs, letters and resumes in one place.",
   "/deadlines": "Every deadline on one timeline with reminders, lead-time control and calendar export.",
@@ -42,8 +44,8 @@ const GROUPS: { title: string; blurb: string; keys: string[] }[] = [
   },
   {
     title: "Plan & apply",
-    blurb: "From shortlist to offer letter",
-    keys: ["/applications", "/deadlines", "/documents", "/sop", "/cv", "/tools"],
+    blurb: "From gap analysis to offer letter",
+    keys: ["/gaps", "/roadmap", "/applications", "/deadlines", "/documents", "/sop", "/cv", "/tools"],
   },
   {
     title: "Get help",

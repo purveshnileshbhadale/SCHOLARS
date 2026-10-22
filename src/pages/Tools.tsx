@@ -4,6 +4,7 @@ import { useAuth } from "../lib/auth";
 import type { StudentProfile, University } from "../lib/types";
 import { cx, fetchAudToInr, inr, money } from "../lib/utils";
 import { waShareUrl } from "../lib/config";
+import { satToAct, actToSat } from "../lib/normaliser";
 import { Badge, Button, Card, Empty, Input, PageHeader, Select, Spinner } from "../components/ui";
 
 type Tool = "eligibility" | "cost" | "converter";
@@ -516,12 +517,15 @@ export default function Tools() {
 
       {tool === "converter" ? (
         <Card>
-          <h2 className="font-bold text-slate-900">IELTS ↔ PTE ↔ TOEFL converter</h2>
+          <h2 className="font-bold text-slate-900">Score converters</h2>
           <p className="mt-1 text-sm text-slate-500">
             Indicative concordance bands. Universities accept specific tests at specific minimums — check which test your
             program accepts.
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
+
+          {/* IELTS ↔ PTE ↔ TOEFL */}
+          <h3 className="mt-5 text-sm font-bold text-slate-800">IELTS ↔ PTE ↔ TOEFL</h3>
+          <div className="mt-2 flex flex-wrap gap-3">
             <Select className="w-44" value={myTest} onChange={(e) => setMyTest(e.target.value as TestKey)} aria-label="Your test">
               {TESTS.map((t) => (
                 <option key={t.key} value={t.key}>
@@ -537,7 +541,7 @@ export default function Tools() {
               placeholder="Your score"
             />
           </div>
-          <table className="mt-4 w-full text-sm">
+          <table className="mt-3 w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
                 <th className="border-b border-slate-200 p-2">IELTS Academic</th>
@@ -561,8 +565,43 @@ export default function Tools() {
               {CONVERSION[converterHighlight].toefl}
             </p>
           ) : null}
+
+          {/* SAT ↔ ACT */}
+          <h3 className="mt-8 text-sm font-bold text-slate-800">SAT ↔ ACT</h3>
+          <p className="mt-1 text-xs text-slate-500">College Board / ACT published concordance.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <SatActConverter direction="sat" />
+            <SatActConverter direction="act" />
+          </div>
         </Card>
       ) : null}
+    </div>
+  );
+}
+
+/** One-directional SAT ↔ ACT converter box. */
+function SatActConverter({ direction }: { direction: "sat" | "act" }) {
+  const [val, setVal] = useState("");
+  const n = Number(val);
+  const converted = val !== "" && Number.isFinite(n)
+    ? direction === "sat" ? actToSat(n) : satToAct(n)
+    : null;
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+      <p className="text-xs font-semibold text-slate-600">
+        {direction === "sat" ? "ACT → SAT" : "SAT → ACT"}
+      </p>
+      <div className="mt-2 flex items-center gap-2">
+        <Input
+          className="w-28"
+          type="number"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          placeholder={direction === "sat" ? "e.g. 30" : "e.g. 1380"}
+        />
+        <span className="text-slate-400">→</span>
+        <span className="text-lg font-bold text-emerald-800">{converted ?? "—"}</span>
+      </div>
     </div>
   );
 }

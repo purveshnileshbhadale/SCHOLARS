@@ -101,9 +101,11 @@ export const MAJOR_OPTIONS = [
 ];
 
 export const GRADING_OPTIONS = [
-  { value: "cbse", label: "CBSE / ICSE (percentage)" },
+  { value: "cbse", label: "CBSE (percentage)" },
+  { value: "icse", label: "ICSE (percentage)" },
   { value: "state", label: "State board (percentage)" },
-  { value: "ib", label: "IB Diploma" },
+  { value: "ib", label: "IB Diploma (24-45 points)" },
   { value: "gpa", label: "GPA (4.0 scale)" },
+  { value: "ap", label: "AP exams (1-5)" },
   { value: "other", label: "Other" },
 ];

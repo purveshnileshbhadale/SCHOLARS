@@ -110,6 +110,7 @@ export interface ShortlistResult {
   generated_at?: string;
   summary?: string;
   items: ShortlistItem[];
+  ruled_out?: { name: string; reason: string }[];
 }
 
 export interface Shortlist {
@@ -285,5 +286,33 @@ export interface OfferCondition {
   label: string;
   met: boolean;
   met_on: string | null;
+  created_at: string;
+}
+
+export type RoadmapStatus = "pending" | "in_progress" | "done" | "skipped";
+
+export interface RoadmapTaskRow {
+  id: string;
+  student_id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  due_date: string | null;
+  start_date: string | null;
+  hours_per_week: number | null;
+  status: RoadmapStatus;
+  completed_at: string | null;
+  proof_url: string | null;
+  gap_id: string | null;
+  intensity: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GapReportRow {
+  id: string;
+  student_id: string;
+  report: unknown;
   created_at: string;
 }

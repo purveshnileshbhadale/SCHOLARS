@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
 import type { Scholarship, Shortlist, ShortlistItem, StudentProfile, Tier, University } from "../lib/types";
 import { money, tierBadge } from "../lib/utils";
 import { waShareUrl } from "../lib/config";
+import { profileSnapshot, PILLAR_LABEL, PILLAR_TONE } from "../lib/normaliser";
+import { chanceBand, studentChanceFields, uniChanceFields } from "../lib/chance";
 import EmailAssist from "../components/EmailAssist";
 import { Badge, Button, Card, Empty, ErrorNote, PageHeader, Spinner } from "../components/ui";
 
@@ -196,25 +198,54 @@ export default function Dashboard() {
 
   const byTier = (t: Tier) => (shortlist?.result.items ?? []).filter((i) => i.tier === t);
 
+  // Profile snapshot (Engine 1) — six pillars for the Dashboard.
+  const snapshot = useMemo(() => {
+    if (!studentProfile) return null;
+    return profileSnapshot({
+      class10: studentProfile.class_10_marks,
+      class12: studentProfile.class_12_marks,
+      gradingSystem: studentProfile.grading_system ?? "cbse",
+      ielts: studentProfile.ielts,
+      toefl: studentProfile.toefl,
+      pte: studentProfile.pte,
+      sat: studentProfile.sat,
+      budgetAudPerYear: studentProfile.budget_aud_per_year,
+      needsScholarship: studentProfile.needs_scholarship,
+    });
+  }, [studentProfile]);
+
+  // Rules-based chance fields for each shortlisted uni (Engine 3).
+  const chanceByUni = useMemo(() => {
+    if (!studentProfile) return new Map<string, ReturnType<typeof chanceBand>>();
+    const sFields = studentChanceFields(studentProfile);
+    const map = new Map<string, ReturnType<typeof chanceBand>>();
+    for (const item of shortlist?.result.items ?? []) {
+      const uni = unis.find((u) => u.id === item.university_id);
+      if (!uni) continue;
+      map.set(item.university_id, chanceBand({ ...sFields, ...uniChanceFields(uni) }));
+    }
+    return map;
+  }, [studentProfile, shortlist, unis]);
+
   function shareShortlist() {
     if (!shortlist) return;
-    const lines = ["My Scholars Abroad shortlist for Australia:", ""];
+    const lines = ["My Scholars Abroad shortlist:", ""];
     shortlist.result.items
       .slice()
       .sort((a, b) => b.fit_score - a.fit_score)
       .forEach((i, idx) => lines.push(`${idx + 1}. ${i.name} (${i.tier}, fit ${i.fit_score})`));
-    lines.push("", "Made with Scholars Abroad — free Australian university shortlist.");
+    lines.push("", "Made with Scholars Abroad — free shortlist with rules-based chance bands.");
     window.open(waShareUrl(lines.join("\n")), "_blank", "noopener,noreferrer");
   }
 
   return (
     <div>
       <PageHeader
-        title="Your Australia shortlist"
+        title="Your shortlist"
         subtitle={
           shortlist
-            ? `Generated ${new Date(shortlist.generated_at).toLocaleString("en-AU")}${shortlist.model_version ? ` · ${shortlist.model_version}` : ""}`
-            : "Free · automatic · no payment needed"
+            ? `Generated ${new Date(shortlist.generated_at).toLocaleString("en-AU")}${shortlist.model_version ? ` · ${shortlist.model_version}` : ""} · rules-based chance bands`
+            : "Free · automatic · rules-based chance bands with plain meanings"
         }
         right={
           <div className="flex flex-wrap gap-2">
@@ -273,6 +304,51 @@ export default function Dashboard() {
 
       <DailyPlanCard />
 
+      {/* Engine 1 — six-pillar profile snapshot */}
+      {snapshot ? (
+        <Card className="mb-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="font-bold text-slate-900">Profile snapshot</h2>
+              <p className="text-xs text-slate-500">Six pillars normalised across boards and tests.</p>
+            </div>
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
+              Overall {snapshot.overallIndex}/100
+            </span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { label: "Academics", ...snapshot.academics },
+              { label: "Tests", ...snapshot.tests },
+              { label: "English", rating: snapshot.english.index >= 70 ? "outstanding" as const : snapshot.english.index >= 50 ? "competitive" as const : snapshot.english.index >= 30 ? "developing" as const : "emerging" as const, detail: snapshot.english.bestTest ? `${snapshot.english.bestTest} ${snapshot.english.bestScore} (≈ ${snapshot.english.cefr})` : "No test yet", index: snapshot.english.index },
+              { label: "Budget", ...snapshot.budgetFit },
+            ].map((p) => (
+              <div key={p.label} className="rounded-xl border border-slate-200/60 bg-slate-50/60 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-slate-800">{p.label}</span>
+                  <Badge className={PILLAR_TONE[p.rating]}>{PILLAR_LABEL[p.rating]}</Badge>
+                </div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200/60">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                    style={{ width: `${Math.min(100, p.index)}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">{p.detail}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link to="/gaps">
+              <Button variant="ghost" className="px-3 py-1.5 text-xs">See gap report →</Button>
+            </Link>
+            <Link to="/roadmap">
+              <Button variant="ghost" className="px-3 py-1.5 text-xs">Open roadmap →</Button>
+            </Link>
+          </div>
+        </Card>
+      ) : null}
+
       {generating && !shortlist ? (
         <Card className="py-16 text-center">
           <Spinner className="size-8" />
@@ -309,6 +385,7 @@ export default function Dashboard() {
                     key={item.university_id}
                     item={item}
                     uni={unis.find((u) => u.id === item.university_id) ?? null}
+                    chance={chanceByUni.get(item.university_id) ?? null}
                     scholarships={scholarships.filter((s) => (item.scholarship_ids ?? []).includes(s.id))}
                     onAssist={() => setAssistUni(item.name)}
                   />
@@ -317,20 +394,31 @@ export default function Dashboard() {
             </section>
           ))}
 
+          {/* Ruled out and why */}
+          {shortlist.result.ruled_out?.length ? (
+            <RuledOutList ruledOut={shortlist.result.ruled_out} />
+          ) : null}
+
           <Card className="flex flex-wrap items-center gap-4">
             <div>
-              <h3 className="font-bold text-slate-900">Next: application readiness & counsellor handoff</h3>
+              <h3 className="font-bold text-slate-900">Next: turn your shortlist into a plan</h3>
               <p className="mt-1 text-sm text-slate-500">
-                Complete your SOP questionnaire, then share your profile with a counsellor on WhatsApp and start tracking applications.
+                See your gaps, build a roadmap, then complete your SOP and share with a counsellor.
               </p>
             </div>
             <div className="grow" />
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Link to="/gaps">
+                <Button variant="ghost">Gap report</Button>
+              </Link>
+              <Link to="/roadmap">
+                <Button variant="ghost">Roadmap</Button>
+              </Link>
               <Link to="/sop">
-                <Button variant="ghost">SOP questionnaire</Button>
+                <Button variant="ghost">SOP</Button>
               </Link>
               <Link to="/applications">
-                <Button>Application journey →</Button>
+                <Button>Applications →</Button>
               </Link>
             </div>
           </Card>
@@ -352,11 +440,13 @@ export default function Dashboard() {
 function UniCard({
   item,
   uni,
+  chance,
   scholarships,
   onAssist,
 }: {
   item: ShortlistItem;
   uni: University | null;
+  chance: ReturnType<typeof chanceBand> | null;
   scholarships: Scholarship[];
   onAssist: () => void;
 }) {
@@ -389,7 +479,7 @@ function UniCard({
         <div>
           <h3 className="font-bold text-slate-900">{item.name}</h3>
           <p className="text-xs text-slate-500">
-            {[uni?.city, uni?.state].filter(Boolean).join(", ")}
+            {[uni?.city, uni?.state, uni?.country].filter(Boolean).join(", ")}
             {uni?.qs_rank ? ` · QS #${uni.qs_rank}` : ""}
           </p>
         </div>
@@ -400,6 +490,20 @@ function UniCard({
         </div>
       </div>
       <p className="mt-3 text-sm text-slate-600">{item.reasoning}</p>
+      {/* Engine 3 — deterministic chance band */}
+      {chance ? (
+        <div className="mt-2 rounded-lg border border-slate-200/60 bg-slate-50/60 px-3 py-2">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-bold text-slate-700">Rules-based:</span>
+            <Badge className={tierBadge(chance.tier)}>{TIER_LABEL[chance.tier]}</Badge>
+            <span className="text-slate-600">{chance.plainMeaning}</span>
+            <span className="ml-auto text-slate-400">confidence: {chance.confidence}</span>
+          </div>
+          {chance.hardRules.length ? (
+            <p className="mt-1 text-[11px] text-amber-700">{chance.hardRules.join(" · ")}</p>
+          ) : null}
+        </div>
+      ) : null}
       <dl className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
         <Fact label="Tuition/yr" value={money(item.tuition_aud ?? uni?.tuition_aud)} />
         <Fact label="Living/yr" value={money(item.living_cost_aud ?? uni?.living_cost_aud)} />
@@ -439,6 +543,43 @@ function UniCard({
   );
 }
 
+function RuledOutList({ ruledOut }: { ruledOut: { name: string; reason: string }[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Card className="mb-6 border-slate-200/60">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between text-left"
+        aria-expanded={open}
+      >
+        <div>
+          <h3 className="font-bold text-slate-900">Ruled out and why</h3>
+          <p className="text-xs text-slate-500">{ruledOut.length} universities excluded by eligibility or budget filters.</p>
+        </div>
+        <svg
+          viewBox="0 0 24 24"
+          className={`size-5 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open ? (
+        <ul className="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
+          {ruledOut.map((r, i) => (
+            <li key={i} className="flex flex-wrap items-baseline gap-2 rounded-lg bg-slate-50/60 px-3 py-2 text-sm">
+              <span className="font-semibold text-slate-800">{r.name}</span>
+              <span className="text-xs text-slate-500">{r.reason}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </Card>
+  );
+}
+
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-slate-50 px-2 py-1.5">
@@ -453,6 +594,8 @@ function Fact({ label, value }: { label: string; value: string }) {
 const PLAN_TASKS = [
   { key: "profile", label: "Tidy one profile field", to: "/onboarding" },
   { key: "shortlist", label: "Review one shortlisted university", to: "/dashboard" },
+  { key: "gap", label: "Check your gap report", to: "/gaps" },
+  { key: "roadmap", label: "Tick one roadmap task", to: "/roadmap" },
   { key: "sop", label: "Answer one SOP question", to: "/sop" },
   { key: "deadline", label: "Check your deadlines", to: "/deadlines" },
   { key: "app", label: "Update one application", to: "/applications" },
