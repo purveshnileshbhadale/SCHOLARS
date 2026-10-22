@@ -47,7 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    refresh().finally(() => setLoading(false));
+    // On mount, onAuthStateChange fires immediately with the restored session,
+    // so refresh() would duplicate its work. Let the listener do the first load.
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       if (s?.user) load(s.user.id);
@@ -55,8 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
         setStudentProfile(null);
       }
+      setLoading(false);
     });
-    return () => sub.subscription.unsubscribe();
+    // Fallback: if no auth event fires within 3s (edge case), stop waiting.
+    const t = setTimeout(() => setLoading(false), 3000);
+    return () => {
+      sub.subscription.unsubscribe();
+      clearTimeout(t);
+    };
   }, []);
 
   async function signOut() {

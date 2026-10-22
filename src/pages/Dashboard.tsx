@@ -52,8 +52,19 @@ function strengthInfo(p: StudentProfile, checks: { label: string; ok: boolean; r
 
 export default function Dashboard() {
   const { session, studentProfile, refresh } = useAuth();
-  const [shortlist, setShortlist] = useState<Shortlist | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Cache last shortlist in localStorage so repeat visits paint instantly
+  // while the network refresh runs in the background.
+  const cacheKey = `sa_sl_${session?.user.id ?? ""}`;
+  const [shortlist, setShortlist] = useState<Shortlist | null>(() => {
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      return raw ? (JSON.parse(raw) as Shortlist) : null;
+    } catch {
+      return null;
+    }
+  });
+  // Only show the full-page spinner if there's nothing cached to paint.
+  const [loading, setLoading] = useState(() => !shortlist);
   const [generating, setGenerating] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const autoRan = useRef(false);
@@ -68,8 +79,13 @@ export default function Dashboard() {
       .order("generated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    setShortlist((data as Shortlist) ?? null);
-  }, [session]);
+    const sl = (data as Shortlist) ?? null;
+    setShortlist(sl);
+    try {
+      if (sl) localStorage.setItem(cacheKey, JSON.stringify(sl));
+      else localStorage.removeItem(cacheKey);
+    } catch {}
+  }, [session, cacheKey]);
 
   async function generate() {
     setErr(null);
@@ -80,8 +96,7 @@ export default function Dashboard() {
         const body = (error as { context?: Response }).context ? await (error as { context: Response }).context.json().catch(() => null) : null;
         throw new Error(body?.error ?? error.message ?? "Could not generate shortlist");
       }
-      await refresh();
-      await loadLatest();
+      await Promise.all([refresh(), loadLatest()]);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not generate shortlist");
     } finally {
@@ -90,38 +105,42 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
+    if (!session) return;
+    let live = true;
     (async () => {
       await loadLatest();
+      if (!live) return;
       setLoading(false);
       if (studentProfile?.is_complete && !autoRan.current) {
         autoRan.current = true;
+        // Only auto-generate if nothing exists after the network fetch.
         const { data } = await supabase
           .from("shortlists")
           .select("id")
-          .eq("student_id", session!.user.id)
+          .eq("student_id", session.user.id)
           .limit(1);
-        if (!data?.length) generate();
+        if (live && !data?.length) generate();
       }
     })();
+    return () => {
+      live = false;
+    };
   }, [session, studentProfile, loadLatest]);
 
   const [unis, setUnis] = useState<University[]>([]);
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
 
-  // Load supporting data for the latest shortlist (runs once per shortlist).
+  // Load supporting data in parallel the moment a shortlist is available.
   useEffect(() => {
     if (!shortlist?.result?.items?.length) return;
     const ids = shortlist.result.items.map((i) => i.university_id);
-    supabase
-      .from("universities")
-      .select("*")
-      .in("id", ids)
-      .then(({ data }) => setUnis((data as University[]) ?? []));
-    supabase
-      .from("scholarships")
-      .select("*")
-      .in("university_id", ids)
-      .then(({ data }) => setScholarships((data as Scholarship[]) ?? []));
+    Promise.all([
+      supabase.from("universities").select("*").in("id", ids),
+      supabase.from("scholarships").select("*").in("university_id", ids),
+    ]).then(([u, s]) => {
+      setUnis((u.data as University[]) ?? []);
+      setScholarships((s.data as Scholarship[]) ?? []);
+    });
   }, [shortlist?.id]);
 
   if (loading)
