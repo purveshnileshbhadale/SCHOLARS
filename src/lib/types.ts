@@ -316,3 +316,55 @@ export interface GapReportRow {
   report: unknown;
   created_at: string;
 }
+
+export type ScholarshipAppStatus =
+  | "saved"
+  | "drafting"
+  | "submitted"
+  | "shortlisted"
+  | "awarded"
+  | "rejected"
+  | "expired";
+
+export interface ScholarshipApplication {
+  id: string;
+  student_id: string;
+  scholarship_id: string | null;
+  scholarship_name: string;
+  provider: string | null;
+  amount_aud: number | null;
+  deadline: string | null;
+  status: ScholarshipAppStatus;
+  submitted_at: string | null;
+  outcome_at: string | null;
+  notes: string | null;
+  doc_url: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type OutreachStatus =
+  | "to_contact"
+  | "drafted"
+  | "sent"
+  | "replied"
+  | "meeting_booked"
+  | "closed";
+
+export interface OutreachContact {
+  id: string;
+  student_id: string;
+  name: string;
+  institution: string | null;
+  department: string | null;
+  email: string | null;
+  research_area: string | null;
+  status: OutreachStatus;
+  last_contacted_at: string | null;
+  follow_up_at: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}

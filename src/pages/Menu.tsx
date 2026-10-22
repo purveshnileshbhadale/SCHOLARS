@@ -14,6 +14,9 @@ const INFO: Record<string, string> = {
   "/sop": "Structured SOP questionnaire with AI feedback, version history and compare view.",
   "/gaps": "Where you stand against admitted-student benchmarks — gaps ranked by impact, fixability and urgency.",
   "/roadmap": "Month-by-month plan built backwards from your deadlines. Tick tasks, pick intensity, re-plan as you progress.",
+  "/scholarship-tracker": "Pipeline for every scholarship — saved, drafting, submitted, shortlisted, awarded. Deadlines and outcomes in one view.",
+  "/outreach": "Cold-email pipeline for professors, researchers and alumni — drafted to meeting booked, with follow-up dates.",
+  "/pre-departure": "Housing, OSHC, flights, banking, TFN and packing — everything between offer acceptance and landing in Australia.",
   "/applications": "Track every application — milestones, offer conditions and visa checklist.",
   "/documents": "Store and verify transcripts, IDs, letters and resumes in one place.",
   "/deadlines": "Every deadline on one timeline with reminders, lead-time control and calendar export.",
@@ -45,7 +48,12 @@ const GROUPS: { title: string; blurb: string; keys: string[] }[] = [
   {
     title: "Plan & apply",
     blurb: "From gap analysis to offer letter",
-    keys: ["/gaps", "/roadmap", "/applications", "/deadlines", "/documents", "/sop", "/cv", "/tools"],
+    keys: ["/gaps", "/roadmap", "/applications", "/scholarship-tracker", "/deadlines", "/documents", "/sop", "/cv", "/outreach", "/tools"],
+  },
+  {
+    title: "After you accept",
+    blurb: "Housing, insurance, flights and banking",
+    keys: ["/pre-departure"],
   },
   {
     title: "Get help",

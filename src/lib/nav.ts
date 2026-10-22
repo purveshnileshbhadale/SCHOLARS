@@ -17,7 +17,8 @@ export type IconKey =
   | "file" | "clipboard" | "folder" | "calendar" | "user" | "map"
   | "target" | "users" | "settings" | "graduation" | "chart" | "book"
   | "dollar" | "clock" | "mail" | "shield" | "database" | "upload"
-  | "user-check" | "card" | "check" | "globe" | "message" | "compass";
+  | "user-check" | "card" | "check" | "globe" | "message" | "compass"
+  | "plane" | "trophy" | "send";
 
 export function linksFor(role: string | undefined): { to: To; label: string }[] {
   return groupsFor(role).flatMap((g) => g.items.map((i) => ({ to: i.to, label: i.label })));
@@ -85,12 +86,18 @@ export function groupsFor(role: string | undefined): NavGroup[] {
         { to: "/gaps", label: "Gap report", icon: "target" },
         { to: "/roadmap", label: "Roadmap", icon: "map" },
         { to: "/applications", label: "Applications", icon: "clipboard" },
+        { to: "/scholarship-tracker", label: "Scholarship tracker", icon: "trophy" },
         { to: "/deadlines", label: "Deadlines", icon: "calendar" },
         { to: "/documents", label: "Documents", icon: "folder" },
         { to: "/sop", label: "SOP", icon: "file" },
         { to: "/cv", label: "CV", icon: "user" },
+        { to: "/outreach", label: "Outreach", icon: "send" },
         { to: "/tools", label: "Tools", icon: "wrench" },
       ],
+    },
+    {
+      title: "After you accept",
+      items: [{ to: "/pre-departure", label: "Pre-departure", icon: "plane" }],
     },
     {
       title: "Get help",
