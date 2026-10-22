@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../lib/auth";
 import type { Profile, Role } from "../../lib/types";
-import { Card, ErrorNote, Input, PageHeader, Select, Spinner } from "../../components/ui";
+import { Button, Card, ErrorNote, Input, PageHeader, Select, Spinner, Toast } from "../../components/ui";
 
 const ROLES: Role[] = ["student", "counsellor", "admin"];
 
-/** Admin power: full user list with instant role switching (student/counsellor/admin). */
+/** Admin power: full user list with instant role switching and account deletion. */
 export default function AdminUsers() {
   const { profile: me } = useAuth();
   const [rows, setRows] = useState<Profile[]>([]);
@@ -14,6 +14,9 @@ export default function AdminUsers() {
   const [q, setQ] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -35,6 +38,29 @@ export default function AdminUsers() {
     if (error) setErr(error.message);
     else setRows((rs) => rs.map((r) => (r.id === id ? { ...r, role } : r)));
     setBusyId(null);
+  }
+
+  async function deleteAccount() {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    setErr(null);
+    try {
+      const { error } = await supabase.functions.invoke("delete-account", {
+        body: { target_user_id: confirmDelete.id },
+      });
+      if (error) {
+        const ctx = (error as { context?: Response }).context;
+        const body = ctx ? await ctx.json().catch(() => null) : null;
+        throw new Error(body?.error ?? error.message ?? "Could not delete account");
+      }
+      setRows((rs) => rs.filter((r) => r.id !== confirmDelete.id));
+      setToast(`Deleted ${confirmDelete.email}`);
+      setConfirmDelete(null);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Could not delete account");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   const needle = q.trim().toLowerCase();
@@ -59,7 +85,7 @@ export default function AdminUsers() {
     <div className="mx-auto max-w-3xl">
       <PageHeader
         title="Users"
-        subtitle="Search anyone, promote to counsellor or admin, or drop someone back to student."
+        subtitle="Search anyone, promote to counsellor or admin, or delete an account permanently."
         right={
           <div className="flex gap-2 text-xs font-semibold text-slate-500">
             <span className="rounded-full border border-slate-200 bg-white/70 px-2.5 py-1">{rows.length} total</span>
@@ -73,6 +99,7 @@ export default function AdminUsers() {
         }
       />
       <ErrorNote>{err}</ErrorNote>
+      <Toast message={toast} />
 
       <Input
         className="mb-4 max-w-72"
@@ -100,19 +127,34 @@ export default function AdminUsers() {
                       <span className="ml-2 text-slate-400">joined {new Date(r.created_at).toLocaleDateString("en-AU")}</span>
                     </p>
                   </div>
-                  <Select
-                    className="w-36"
-                    value={r.role}
-                    disabled={own || busyId === r.id}
-                    title={own ? "You can't change your own role here." : undefined}
-                    onChange={(e) => setRole(r.id, e.target.value as Role)}
-                  >
-                    {ROLES.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      className="w-36"
+                      value={r.role}
+                      disabled={own || busyId === r.id}
+                      title={own ? "You can't change your own role here." : undefined}
+                      onChange={(e) => setRole(r.id, e.target.value as Role)}
+                    >
+                      {ROLES.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </Select>
+                    {!own ? (
+                      <button
+                        onClick={() => setConfirmDelete({ id: r.id, name: r.name ?? "", email: r.email ?? "" })}
+                        disabled={busyId === r.id}
+                        title="Delete this account permanently"
+                        className="rounded-lg border border-rose-200 bg-rose-50 p-1.5 text-rose-500 transition hover:border-rose-400 hover:bg-rose-100 hover:text-rose-700 disabled:opacity-40"
+                      >
+                        <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M10 11v6M14 11v6" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    ) : null}
+                  </div>
                 </li>
               );
             })}
@@ -120,8 +162,33 @@ export default function AdminUsers() {
         )}
       </Card>
       <p className="mt-4 text-xs text-slate-400">
-        Role changes apply on the user's next page load. New signups start as students.
+        Role changes apply on the user's next page load. Deletion is permanent — all data cascades and cannot be recovered.
       </p>
+
+      {/* Delete confirmation modal */}
+      {confirmDelete ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 backdrop-blur-sm"
+          onClick={() => !deleting && setConfirmDelete(null)}
+          role="presentation"
+        >
+          <Card className="w-full max-w-md">
+            <h2 className="text-lg font-bold text-slate-900">Delete account?</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              This permanently deletes <strong>{confirmDelete.email}</strong> and all their data — profile,
+              shortlist, applications, documents, bookings and community posts. This cannot be undone.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setConfirmDelete(null)} disabled={deleting}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={deleteAccount} disabled={deleting}>
+                {deleting ? "Deleting…" : "Delete permanently"}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      ) : null}
     </div>
   );
 }

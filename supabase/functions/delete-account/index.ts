@@ -1,6 +1,10 @@
-// Permanently deletes the calling user's account. Every owned table cascades
-// from auth.users, so a single admin delete wipes the profile, shortlist,
+// Permanently deletes an account. Every owned table cascades from
+// auth.users, so a single delete wipes the profile, shortlist,
 // applications, documents, community content and referrals.
+//
+// Two callers:
+//  1. A user deleting their own account (normal JWT).
+//  2. An admin deleting any account (admin JWT + target_user_id in body).
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
 
@@ -19,8 +23,23 @@ Deno.serve(async (req) => {
   } = await userClient.auth.getUser();
   if (!user) return json({ error: "Not authenticated" }, 401);
 
+  const body = await req.json().catch(() => ({}));
+  const targetId = typeof body.target_user_id === "string" && body.target_user_id ? body.target_user_id : user.id;
+
+  // If deleting someone else, verify the caller is an admin.
+  if (targetId !== user.id) {
+    const { data: callerProfile } = await userClient
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (callerProfile?.role !== "admin") {
+      return json({ error: "Only admins can delete other accounts." }, 403);
+    }
+  }
+
   const admin = createClient(supabaseUrl, serviceKey);
-  const { error } = await admin.auth.admin.deleteUser(user.id);
+  const { error } = await admin.auth.admin.deleteUser(targetId);
   if (error) return json({ error: error.message }, 500);
-  return json({ ok: true });
+  return json({ ok: true, deleted: targetId });
 });
