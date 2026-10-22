@@ -1,16 +1,33 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { compression } from "vite-plugin-compression2";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    // Pre-compress assets at build time so the CDN serves .br instantly
+    // instead of compressing on every request. Brotli quality 11 = smallest.
+    compression({
+      algorithm: "brotliCompress",
+      compressionOptions: { level: 11 },
+      threshold: 1024,
+      deleteOriginFile: false,
+    }),
+  ],
   build: {
+    target: "es2020",
+    // Drop console/debugger from production — removes ~10-15% of app JS.
+    minify: "esbuild",
+    esbuild: { drop: ["console", "debugger"] },
+    cssMinify: true,
+    modulePreload: { polyfill: false },
+    reportCompressedSize: false,
     rollupOptions: {
       output: {
-        // Split stable vendors into their own long-lived chunks: app deploys
-        // no longer invalidate react/supabase downloads, and the entry chunk
-        // drops under the 500 kB warning. Anything not matched (e.g. xlsx)
-        // stays with its importer so AdminImport keeps it out of the entry.
+        // Long-lived vendor chunks: app deploys no longer invalidate
+        // react/supabase downloads. xlsx stays with AdminImport (340 kB).
         manualChunks(id: string) {
           if (!id.includes("node_modules")) return undefined;
           if (id.includes("react-router")) return "vendor-react";
