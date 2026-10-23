@@ -454,6 +454,13 @@ export default function Applications() {
       <PageHeader
         title="Your University Application Journey"
         subtitle={`${completedCount} of ${steps.length} steps complete`}
+        right={
+          decided.length >= 2 ? (
+            <Link to="/compare-offers">
+              <Button variant="ghost" className="text-xs">Compare {decided.length} offers →</Button>
+            </Link>
+          ) : null
+        }
       />
       <ErrorNote>{err}</ErrorNote>
       {note ? (

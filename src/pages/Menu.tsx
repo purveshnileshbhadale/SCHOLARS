@@ -17,6 +17,9 @@ const INFO: Record<string, string> = {
   "/scholarship-tracker": "Pipeline for every scholarship — saved, drafting, submitted, shortlisted, awarded. Deadlines and outcomes in one view.",
   "/outreach": "Cold-email pipeline for professors, researchers and alumni — drafted to meeting booked, with follow-up dates.",
   "/pre-departure": "Housing, OSHC, flights, banking, TFN and packing — everything between offer acceptance and landing in Australia.",
+  "/compare-offers": "Put two or more offers side by side — cost, rank, conditions, accept-by dates and post-study work in one table.",
+  "/work-rights": "48-hour fortnight tracker for student visa holders — log hours, see compliance, payslip checks and take-home estimate.",
+  "/pr-pathway": "Points-tested PR calculator (189/190/491) from official tables plus the 485 post-study pathway, step by step.",
   "/applications": "Track every application — milestones, offer conditions and visa checklist.",
   "/documents": "Store and verify transcripts, IDs, letters and resumes in one place.",
   "/deadlines": "Every deadline on one timeline with reminders, lead-time control and calendar export.",
@@ -48,12 +51,12 @@ const GROUPS: { title: string; blurb: string; keys: string[] }[] = [
   {
     title: "Plan & apply",
     blurb: "From gap analysis to offer letter",
-    keys: ["/gaps", "/roadmap", "/applications", "/scholarship-tracker", "/deadlines", "/documents", "/sop", "/cv", "/outreach", "/tools"],
+    keys: ["/gaps", "/roadmap", "/applications", "/compare-offers", "/scholarship-tracker", "/deadlines", "/documents", "/sop", "/cv", "/outreach", "/tools"],
   },
   {
     title: "After you accept",
-    blurb: "Housing, insurance, flights and banking",
-    keys: ["/pre-departure"],
+    blurb: "Housing, work rights and the PR pathway",
+    keys: ["/pre-departure", "/work-rights", "/pr-pathway"],
   },
   {
     title: "Get help",

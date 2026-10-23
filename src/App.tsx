@@ -36,6 +36,9 @@ const Roadmap = lazy(() => import("./pages/Roadmap"));
 const PreDeparture = lazy(() => import("./pages/PreDeparture"));
 const ScholarshipTracker = lazy(() => import("./pages/ScholarshipTracker"));
 const Outreach = lazy(() => import("./pages/Outreach"));
+const OffersCompare = lazy(() => import("./pages/OffersCompare"));
+const WorkRights = lazy(() => import("./pages/WorkRights"));
+const PrPathway = lazy(() => import("./pages/PrPathway"));
 const CounsellorHome = lazy(() => import("./pages/counsellor/CounsellorHome"));
 const CounsellorBookings = lazy(() => import("./pages/counsellor/CounsellorBookings"));
 const CounsellorStudent = lazy(() => import("./pages/counsellor/CounsellorStudent"));
@@ -181,6 +184,9 @@ export default function App() {
         <Route path="/pre-departure" element={<Guard><PreDeparture /></Guard>} />
         <Route path="/scholarship-tracker" element={<Guard><ScholarshipTracker /></Guard>} />
         <Route path="/outreach" element={<Guard><Outreach /></Guard>} />
+        <Route path="/compare-offers" element={<Guard><OffersCompare /></Guard>} />
+        <Route path="/work-rights" element={<Guard><WorkRights /></Guard>} />
+        <Route path="/pr-pathway" element={<Guard><PrPathway /></Guard>} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/counsellor" element={<Guard role="counsellor"><CounsellorHome /></Guard>} />
