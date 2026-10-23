@@ -39,6 +39,9 @@ const Outreach = lazy(() => import("./pages/Outreach"));
 const OffersCompare = lazy(() => import("./pages/OffersCompare"));
 const WorkRights = lazy(() => import("./pages/WorkRights"));
 const PrPathway = lazy(() => import("./pages/PrPathway"));
+const Budget = lazy(() => import("./pages/Budget"));
+const TestPrep = lazy(() => import("./pages/TestPrep"));
+const Achievements = lazy(() => import("./pages/Achievements"));
 const CounsellorHome = lazy(() => import("./pages/counsellor/CounsellorHome"));
 const CounsellorBookings = lazy(() => import("./pages/counsellor/CounsellorBookings"));
 const CounsellorStudent = lazy(() => import("./pages/counsellor/CounsellorStudent"));
@@ -187,6 +190,9 @@ export default function App() {
         <Route path="/compare-offers" element={<Guard><OffersCompare /></Guard>} />
         <Route path="/work-rights" element={<Guard><WorkRights /></Guard>} />
         <Route path="/pr-pathway" element={<Guard><PrPathway /></Guard>} />
+        <Route path="/budget" element={<Guard><Budget /></Guard>} />
+        <Route path="/test-prep" element={<Guard><TestPrep /></Guard>} />
+        <Route path="/achievements" element={<Guard><Achievements /></Guard>} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/counsellor" element={<Guard role="counsellor"><CounsellorHome /></Guard>} />

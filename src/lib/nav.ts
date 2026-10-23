@@ -18,7 +18,8 @@ export type IconKey =
   | "target" | "users" | "settings" | "graduation" | "chart" | "book"
   | "dollar" | "clock" | "mail" | "shield" | "database" | "upload"
   | "user-check" | "card" | "check" | "globe" | "message" | "compass"
-  | "plane" | "trophy" | "send" | "columns" | "briefcase" | "flag";
+  | "plane" | "trophy" | "send" | "columns" | "briefcase" | "flag"
+  | "wallet" | "brain" | "medal";
 
 export function linksFor(role: string | undefined): { to: To; label: string }[] {
   return groupsFor(role).flatMap((g) => g.items.map((i) => ({ to: i.to, label: i.label })));
@@ -93,6 +94,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
         { to: "/sop", label: "SOP", icon: "file" },
         { to: "/cv", label: "CV", icon: "user" },
         { to: "/outreach", label: "Outreach", icon: "send" },
+        { to: "/test-prep", label: "Test prep", icon: "brain" },
         { to: "/tools", label: "Tools", icon: "wrench" },
       ],
     },
@@ -101,6 +103,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
       items: [
         { to: "/pre-departure", label: "Pre-departure", icon: "plane" },
         { to: "/work-rights", label: "Work rights", icon: "briefcase" },
+        { to: "/budget", label: "Budget", icon: "wallet" },
         { to: "/pr-pathway", label: "PR pathway", icon: "flag" },
       ],
     },
@@ -113,12 +116,13 @@ export function groupsFor(role: string | undefined): NavGroup[] {
         { to: "/community", label: "Community", icon: "message" },
       ],
     },
-    {
-      title: "Account",
-      items: [
-        { to: "/settings", label: "Settings", icon: "settings" },
-        { to: "/menu", label: "Menu", icon: "compass" },
-      ],
-    },
+      {
+        title: "Account",
+        items: [
+          { to: "/achievements", label: "Achievements", icon: "medal" },
+          { to: "/settings", label: "Settings", icon: "settings" },
+          { to: "/menu", label: "Menu", icon: "compass" },
+        ],
+      },
   ];
 }

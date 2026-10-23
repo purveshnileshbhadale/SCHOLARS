@@ -139,6 +139,17 @@ export function englishLevel(
   };
 }
 
+/** Convert a score in one English test to the equivalent on the others (published concordance). */
+export function englishEquivalents(
+  from: "IELTS" | "TOEFL" | "PTE",
+  value: number,
+): { ielts: number | null; toefl: number | null; pte: number | null; cefr: string | null } {
+  const key = from === "IELTS" ? "ielts" : from === "TOEFL" ? "toefl" : "pte";
+  const row = nearestRow((r) => r[key], value);
+  if (!row) return { ielts: null, toefl: null, pte: null, cefr: null };
+  return { ielts: row.ielts, toefl: row.toefl, pte: row.pte, cefr: row.cefr };
+}
+
 function nearestRow(get: (r: ConcordanceRow) => number, value: number): ConcordanceRow | null {
   let best: ConcordanceRow | null = null;
   let bestDist = Infinity;

@@ -16,10 +16,12 @@ const INFO: Record<string, string> = {
   "/roadmap": "Month-by-month plan built backwards from your deadlines. Tick tasks, pick intensity, re-plan as you progress.",
   "/scholarship-tracker": "Pipeline for every scholarship — saved, drafting, submitted, shortlisted, awarded. Deadlines and outcomes in one view.",
   "/outreach": "Cold-email pipeline for professors, researchers and alumni — drafted to meeting booked, with follow-up dates.",
+  "/test-prep": "IELTS/PTE practice — academic flashcards, a timed Task 2 writer with band self-checks, cue cards with timers and a score converter.",
   "/pre-departure": "Housing, OSHC, flights, banking, TFN and packing — everything between offer acceptance and landing in Australia.",
   "/compare-offers": "Put two or more offers side by side — cost, rank, conditions, accept-by dates and post-study work in one table.",
   "/work-rights": "48-hour fortnight tracker for student visa holders — log hours, see compliance, payslip checks and take-home estimate.",
   "/pr-pathway": "Points-tested PR calculator (189/190/491) from official tables plus the 485 post-study pathway, step by step.",
+  "/budget": "Monthly expense tracker with category limits, city benchmarks and a burn-rate projection for the month.",
   "/applications": "Track every application — milestones, offer conditions and visa checklist.",
   "/documents": "Store and verify transcripts, IDs, letters and resumes in one place.",
   "/deadlines": "Every deadline on one timeline with reminders, lead-time control and calendar export.",
@@ -28,6 +30,7 @@ const INFO: Record<string, string> = {
   "/bookings": "Your paid and scheduled sessions — reschedule, cancel or review notes.",
   "/community": "Ask questions, share wins and learn from other students.",
   "/settings": "Account details, appearance, two-factor security, notifications, privacy and data export.",
+  "/achievements": "Badges for every milestone — profile, applications, planning and life in Australia — with progress toward each.",
   "/menu": "This page — every section of the app with a short description.",
   // Counsellor
   "/counsellor": "Students assigned to you — profiles, shortlists, resumes and private notes.",
@@ -51,12 +54,12 @@ const GROUPS: { title: string; blurb: string; keys: string[] }[] = [
   {
     title: "Plan & apply",
     blurb: "From gap analysis to offer letter",
-    keys: ["/gaps", "/roadmap", "/applications", "/compare-offers", "/scholarship-tracker", "/deadlines", "/documents", "/sop", "/cv", "/outreach", "/tools"],
+    keys: ["/gaps", "/roadmap", "/applications", "/compare-offers", "/scholarship-tracker", "/deadlines", "/documents", "/sop", "/cv", "/outreach", "/test-prep", "/tools"],
   },
   {
     title: "After you accept",
     blurb: "Housing, work rights and the PR pathway",
-    keys: ["/pre-departure", "/work-rights", "/pr-pathway"],
+    keys: ["/pre-departure", "/work-rights", "/budget", "/pr-pathway"],
   },
   {
     title: "Get help",
@@ -76,7 +79,7 @@ const GROUPS: { title: string; blurb: string; keys: string[] }[] = [
   {
     title: "Account",
     blurb: "Your details, privacy and preferences",
-    keys: ["/settings"],
+    keys: ["/achievements", "/settings"],
   },
 ];
 
