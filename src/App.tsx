@@ -42,6 +42,9 @@ const PrPathway = lazy(() => import("./pages/PrPathway"));
 const Budget = lazy(() => import("./pages/Budget"));
 const TestPrep = lazy(() => import("./pages/TestPrep"));
 const Achievements = lazy(() => import("./pages/Achievements"));
+const Gpa = lazy(() => import("./pages/Gpa"));
+const Validity = lazy(() => import("./pages/Validity"));
+const Invite = lazy(() => import("./pages/Invite"));
 const CounsellorHome = lazy(() => import("./pages/counsellor/CounsellorHome"));
 const CounsellorBookings = lazy(() => import("./pages/counsellor/CounsellorBookings"));
 const CounsellorStudent = lazy(() => import("./pages/counsellor/CounsellorStudent"));
@@ -193,6 +196,9 @@ export default function App() {
         <Route path="/budget" element={<Guard><Budget /></Guard>} />
         <Route path="/test-prep" element={<Guard><TestPrep /></Guard>} />
         <Route path="/achievements" element={<Guard><Achievements /></Guard>} />
+        <Route path="/gpa" element={<Guard><Gpa /></Guard>} />
+        <Route path="/validity" element={<Guard><Validity /></Guard>} />
+        <Route path="/invite" element={<Guard><Invite /></Guard>} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/counsellor" element={<Guard role="counsellor"><CounsellorHome /></Guard>} />

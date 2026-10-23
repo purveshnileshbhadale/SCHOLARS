@@ -19,7 +19,7 @@ export type IconKey =
   | "dollar" | "clock" | "mail" | "shield" | "database" | "upload"
   | "user-check" | "card" | "check" | "globe" | "message" | "compass"
   | "plane" | "trophy" | "send" | "columns" | "briefcase" | "flag"
-  | "wallet" | "brain" | "medal";
+  | "wallet" | "brain" | "medal" | "calculator" | "hourglass" | "gift";
 
 export function linksFor(role: string | undefined): { to: To; label: string }[] {
   return groupsFor(role).flatMap((g) => g.items.map((i) => ({ to: i.to, label: i.label })));
@@ -95,6 +95,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
         { to: "/cv", label: "CV", icon: "user" },
         { to: "/outreach", label: "Outreach", icon: "send" },
         { to: "/test-prep", label: "Test prep", icon: "brain" },
+        { to: "/gpa", label: "GPA & WAM", icon: "calculator" },
         { to: "/tools", label: "Tools", icon: "wrench" },
       ],
     },
@@ -104,6 +105,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
         { to: "/pre-departure", label: "Pre-departure", icon: "plane" },
         { to: "/work-rights", label: "Work rights", icon: "briefcase" },
         { to: "/budget", label: "Budget", icon: "wallet" },
+        { to: "/validity", label: "Expiry radar", icon: "hourglass" },
         { to: "/pr-pathway", label: "PR pathway", icon: "flag" },
       ],
     },
@@ -120,6 +122,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
         title: "Account",
         items: [
           { to: "/achievements", label: "Achievements", icon: "medal" },
+          { to: "/invite", label: "Refer a friend", icon: "gift" },
           { to: "/settings", label: "Settings", icon: "settings" },
           { to: "/menu", label: "Menu", icon: "compass" },
         ],
