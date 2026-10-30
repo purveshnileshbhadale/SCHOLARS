@@ -26,8 +26,16 @@
     {
       "source": "/",
       "headers": [
+        { "key": "Cache-Control", "value": "no-cache, must-revalidate" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, must-revalidate" },
+        { "key": "Vary", "value": "Accept-Encoding" }
       ]
     }
   ]

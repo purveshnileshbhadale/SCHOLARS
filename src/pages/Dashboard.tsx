@@ -58,7 +58,14 @@ export default function Dashboard() {
   const [shortlist, setShortlist] = useState<Shortlist | null>(() => {
     try {
       const raw = localStorage.getItem(cacheKey);
-      return raw ? (JSON.parse(raw) as Shortlist) : null;
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Shortlist;
+      // Only trust a cache that still has the shape this page renders.
+      if (!parsed?.result || !Array.isArray(parsed.result.items)) {
+        localStorage.removeItem(cacheKey);
+        return null;
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -79,7 +86,7 @@ export default function Dashboard() {
       .order("generated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const sl = (data as Shortlist) ?? null;
+    const sl = ((data as Shortlist)?.result?.items ? (data as Shortlist) : null);
     setShortlist(sl);
     try {
       if (sl) localStorage.setItem(cacheKey, JSON.stringify(sl));
@@ -215,7 +222,7 @@ export default function Dashboard() {
     );
   }
 
-  const byTier = (t: Tier) => (shortlist?.result.items ?? []).filter((i) => i.tier === t);
+  const byTier = (t: Tier) => (shortlist?.result?.items ?? []).filter((i) => i.tier === t);
 
   // Profile snapshot (Engine 1) — six pillars for the Dashboard.
   const snapshot = useMemo(() => {
@@ -238,7 +245,7 @@ export default function Dashboard() {
     if (!studentProfile) return new Map<string, ReturnType<typeof chanceBand>>();
     const sFields = studentChanceFields(studentProfile);
     const map = new Map<string, ReturnType<typeof chanceBand>>();
-    for (const item of shortlist?.result.items ?? []) {
+    for (const item of shortlist?.result?.items ?? []) {
       const uni = unis.find((u) => u.id === item.university_id);
       if (!uni) continue;
       map.set(item.university_id, chanceBand({ ...sFields, ...uniChanceFields(uni) }));
@@ -249,7 +256,7 @@ export default function Dashboard() {
   function shareShortlist() {
     if (!shortlist) return;
     const lines = ["My Scholars Abroad shortlist:", ""];
-    shortlist.result.items
+    shortlist.result?.items
       .slice()
       .sort((a, b) => b.fit_score - a.fit_score)
       .forEach((i, idx) => lines.push(`${idx + 1}. ${i.name} (${i.tier}, fit ${i.fit_score})`));
@@ -386,9 +393,9 @@ export default function Dashboard() {
 
       {shortlist ? (
         <>
-          {shortlist.result.summary ? (
+          {shortlist.result?.summary ? (
             <Card className="mb-6 border-emerald-200 bg-emerald-50/60">
-              <p className="text-sm leading-relaxed text-slate-800">{shortlist.result.summary}</p>
+              <p className="text-sm leading-relaxed text-slate-800">{shortlist.result?.summary}</p>
             </Card>
           ) : null}
 
@@ -414,8 +421,8 @@ export default function Dashboard() {
           ))}
 
           {/* Ruled out and why */}
-          {shortlist.result.ruled_out?.length ? (
-            <RuledOutList ruledOut={shortlist.result.ruled_out} />
+          {shortlist.result?.ruled_out?.length ? (
+            <RuledOutList ruledOut={shortlist.result?.ruled_out ?? []} />
           ) : null}
 
           <Card className="flex flex-wrap items-center gap-4">

@@ -17,18 +17,27 @@
     </script>
   </head>
   <body>
-    <!-- Instant branded splash: paints on first byte of HTML, cleared by main.tsx before React mounts. -->
+    <!-- Branded splash: paints on the first byte of HTML and is replaced by
+         React on its first commit. The watchdog below makes sure it never
+         sits silently forever if a bundle fails to load. -->
     <div id="root">
       <div
-        style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: #050a1f; color: #fff; font-family: ui-sans-serif, system-ui, sans-serif; margin: 0"
+        style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: linear-gradient(160deg, #050a1f 0%, #0b1a33 55%, #06281f 100%); color: #fff; font-family: ui-sans-serif, system-ui, sans-serif; margin: 0"
       >
         <p style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em">Scholars Abroad</p>
         <div
           style="width: 36px; height: 36px; border-radius: 50%; border: 3px solid rgba(16, 185, 129, 0.25); border-top-color: #10b981; animation: bootspin 0.8s linear infinite"
         ></div>
-        <p style="font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5)">
+        <p id="boot-hint" style="font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5)">
           Loading
         </p>
+        <a
+          id="boot-reload"
+          href="/"
+          style="display: none; margin-top: 4px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.25); padding: 8px 16px; font-size: 12px; font-weight: 700; color: #fff; text-decoration: none; background: rgba(16, 185, 129, 0.18)"
+        >
+          Taking a while? Reload
+        </a>
       </div>
       <style>
         @keyframes bootspin {
@@ -38,6 +47,21 @@
         }
       </style>
     </div>
+    <noscript>
+      <div style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #050a1f; color: #fff; font-family: system-ui, sans-serif; padding: 24px; text-align: center">
+        Scholars Abroad needs JavaScript enabled. Turn it on and reload this page.
+      </div>
+    </noscript>
+    <script>
+      // Watchdog: if React hasn't painted in 9 seconds, offer a reload instead
+      // of showing an unresponsive splash screen.
+      setTimeout(function () {
+        var hint = document.getElementById("boot-hint");
+        var reload = document.getElementById("boot-reload");
+        if (hint) hint.textContent = "Still loading…";
+        if (reload) reload.style.display = "inline-block";
+      }, 9000);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
