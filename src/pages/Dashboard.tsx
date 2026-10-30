@@ -150,6 +150,37 @@ export default function Dashboard() {
     });
   }, [shortlist?.id]);
 
+  // Profile snapshot (Engine 1) — six pillars for the Dashboard.
+  // Hooks must run in the same order on every render, so these live ABOVE the
+  // loading / incomplete-profile early returns (React error #300 otherwise).
+  const snapshot = useMemo(() => {
+    if (!studentProfile) return null;
+    return profileSnapshot({
+      class10: studentProfile.class_10_marks,
+      class12: studentProfile.class_12_marks,
+      gradingSystem: studentProfile.grading_system ?? "cbse",
+      ielts: studentProfile.ielts,
+      toefl: studentProfile.toefl,
+      pte: studentProfile.pte,
+      sat: studentProfile.sat,
+      budgetAudPerYear: studentProfile.budget_aud_per_year,
+      needsScholarship: studentProfile.needs_scholarship,
+    });
+  }, [studentProfile]);
+
+  // Rules-based chance fields for each shortlisted uni (Engine 3).
+  const chanceByUni = useMemo(() => {
+    if (!studentProfile) return new Map<string, ReturnType<typeof chanceBand>>();
+    const sFields = studentChanceFields(studentProfile);
+    const map = new Map<string, ReturnType<typeof chanceBand>>();
+    for (const item of shortlist?.result?.items ?? []) {
+      const uni = unis.find((u) => u.id === item.university_id);
+      if (!uni) continue;
+      map.set(item.university_id, chanceBand({ ...sFields, ...uniChanceFields(uni) }));
+    }
+    return map;
+  }, [studentProfile, shortlist, unis]);
+
   if (loading)
     return (
       <div className="flex justify-center py-24">
@@ -223,35 +254,6 @@ export default function Dashboard() {
   }
 
   const byTier = (t: Tier) => (shortlist?.result?.items ?? []).filter((i) => i.tier === t);
-
-  // Profile snapshot (Engine 1) — six pillars for the Dashboard.
-  const snapshot = useMemo(() => {
-    if (!studentProfile) return null;
-    return profileSnapshot({
-      class10: studentProfile.class_10_marks,
-      class12: studentProfile.class_12_marks,
-      gradingSystem: studentProfile.grading_system ?? "cbse",
-      ielts: studentProfile.ielts,
-      toefl: studentProfile.toefl,
-      pte: studentProfile.pte,
-      sat: studentProfile.sat,
-      budgetAudPerYear: studentProfile.budget_aud_per_year,
-      needsScholarship: studentProfile.needs_scholarship,
-    });
-  }, [studentProfile]);
-
-  // Rules-based chance fields for each shortlisted uni (Engine 3).
-  const chanceByUni = useMemo(() => {
-    if (!studentProfile) return new Map<string, ReturnType<typeof chanceBand>>();
-    const sFields = studentChanceFields(studentProfile);
-    const map = new Map<string, ReturnType<typeof chanceBand>>();
-    for (const item of shortlist?.result?.items ?? []) {
-      const uni = unis.find((u) => u.id === item.university_id);
-      if (!uni) continue;
-      map.set(item.university_id, chanceBand({ ...sFields, ...uniChanceFields(uni) }));
-    }
-    return map;
-  }, [studentProfile, shortlist, unis]);
 
   function shareShortlist() {
     if (!shortlist) return;

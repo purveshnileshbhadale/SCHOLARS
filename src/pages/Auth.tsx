@@ -8,9 +8,6 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const nav = useNavigate();
   const { refresh, profile, session, loading } = useAuth();
 
-  // Already logged in — never show the login form again ("once login, keep login").
-  if (!loading && session) return <Navigate to={homeFor(profile?.role)} replace />;
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -19,6 +16,11 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const [busy, setBusy] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+
+  // Already logged in — never show the login form again ("once login, keep login").
+  // Kept AFTER every hook so the hook order is stable across renders
+  // (React error #300/#310 otherwise when the session arrives mid-mount).
+  if (!loading && session) return <Navigate to={homeFor(profile?.role)} replace />;
 
   async function forgot() {
     setErr(null);
