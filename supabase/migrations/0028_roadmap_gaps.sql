@@ -7,6 +7,9 @@
 create table if not exists public.roadmap_tasks (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles(id) on delete cascade,
+  -- Stable engine key for the task ("essays", "english_test", …). Titles can be
+  -- reworded by the planner; the key is what progress is tracked against.
+  task_key text,
   title text not null,
   description text,
   category text not null default 'admin',
@@ -45,6 +48,15 @@ create policy "roadmap_tasks: counsellor/admin read" on public.roadmap_tasks
 grant select, insert, update, delete on public.roadmap_tasks to authenticated;
 create index if not exists roadmap_tasks_student_idx
   on public.roadmap_tasks (student_id, due_date nulls last, sort_order);
+
+-- Older copies of this table have no task_key; add it without touching data.
+alter table public.roadmap_tasks add column if not exists task_key text;
+
+-- One row per student per engine task. The frontend upserts on this pair
+-- (ON CONFLICT needs a real unique index, not just an index).
+create unique index if not exists roadmap_tasks_student_key_idx
+  on public.roadmap_tasks (student_id, task_key)
+  where task_key is not null;
 
 -- updated_at trigger
 create or replace function public.set_updated_at()

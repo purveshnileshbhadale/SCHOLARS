@@ -1,18 +1,20 @@
-﻿-- ============================================================
+-- ============================================================
 -- Scholars Abroad - apply pending schema (0028 + 0029)
 -- Safe to run more than once: every statement is idempotent.
 -- Run in Supabase -> SQL Editor for project zacbcisgiwejkgeimbmd.
 -- ============================================================
-
 -- ============================================================
--- Phase 10 â€” Roadmap planner + Gap report persistence
+-- Phase 10 — Roadmap planner + Gap report persistence
 -- Engine 5 (roadmap) and Engine 4 (gap analyser) data.
 -- ============================================================
 
--- 1) Roadmap tasks â€” persisted, editable, status-tracked.
+-- 1) Roadmap tasks — persisted, editable, status-tracked.
 create table if not exists public.roadmap_tasks (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles(id) on delete cascade,
+  -- Stable engine key for the task ("essays", "english_test", …). Titles can be
+  -- reworded by the planner; the key is what progress is tracked against.
+  task_key text,
   title text not null,
   description text,
   category text not null default 'admin',
@@ -52,6 +54,15 @@ grant select, insert, update, delete on public.roadmap_tasks to authenticated;
 create index if not exists roadmap_tasks_student_idx
   on public.roadmap_tasks (student_id, due_date nulls last, sort_order);
 
+-- Older copies of this table have no task_key; add it without touching data.
+alter table public.roadmap_tasks add column if not exists task_key text;
+
+-- One row per student per engine task. The frontend upserts on this pair
+-- (ON CONFLICT needs a real unique index, not just an index).
+create unique index if not exists roadmap_tasks_student_key_idx
+  on public.roadmap_tasks (student_id, task_key)
+  where task_key is not null;
+
 -- updated_at trigger
 create or replace function public.set_updated_at()
 returns trigger language plpgsql security definer set search_path = public as $$
@@ -65,7 +76,7 @@ drop trigger if exists roadmap_tasks_touch on public.roadmap_tasks;
 create trigger roadmap_tasks_touch before update on public.roadmap_tasks
   for each row execute function public.set_updated_at();
 
--- 2) Gap report snapshots â€” computed engine output stored for history.
+-- 2) Gap report snapshots — computed engine output stored for history.
 create table if not exists public.gap_reports (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles(id) on delete cascade,
@@ -94,10 +105,10 @@ create index if not exists gap_reports_student_idx
   on public.gap_reports (student_id, created_at desc);
 
 -- ============================================================
--- Phase 11 â€” Scholarship tracker + Professor outreach pipeline
+-- Phase 11 — Scholarship tracker + Professor outreach pipeline
 -- ============================================================
 
--- 1) Scholarship applications â€” workflow per scholarship.
+-- 1) Scholarship applications — workflow per scholarship.
 create table if not exists public.scholarship_applications (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles(id) on delete cascade,
@@ -141,7 +152,7 @@ drop trigger if exists scholarship_apps_touch on public.scholarship_applications
 create trigger scholarship_apps_touch before update on public.scholarship_applications
   for each row execute function public.set_updated_at();
 
--- 2) Outreach contacts â€” professors, researchers, alumni you cold-email.
+-- 2) Outreach contacts — professors, researchers, alumni you cold-email.
 create table if not exists public.outreach_contacts (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.profiles(id) on delete cascade,
@@ -183,4 +194,3 @@ create index if not exists outreach_student_idx
 drop trigger if exists outreach_contacts_touch on public.outreach_contacts;
 create trigger outreach_contacts_touch before update on public.outreach_contacts
   for each row execute function public.set_updated_at();
-

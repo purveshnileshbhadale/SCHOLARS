@@ -5,7 +5,18 @@ import { useAuth } from "../lib/auth";
 import type { Shortlist, Tier } from "../lib/types";
 import { analyseGaps, type GapReport } from "../lib/gaps";
 import { PILLAR_LABEL, PILLAR_TONE, rateIndex } from "../lib/normaliser";
-import { Badge, Button, Card, Empty, ErrorNote, PageHeader, Spinner } from "../components/ui";
+import { isMissingTable, localId, localRows, nowIso, saveLocalRows, syncLocalRows } from "../lib/offline";
+import { Badge, Button, Card, DeviceNote, Empty, ErrorNote, PageHeader, Spinner, Toast } from "../components/ui";
+
+const TABLE = "gap_reports";
+
+interface StoredSnapshot {
+  id: string;
+  student_id: string;
+  report: unknown;
+  created_at: string;
+}
+
 
 function monthsUntilEarliestDeadline(shortlist: Shortlist | null): number {
   // Without per-university deadlines in the shortlist payload, assume a
@@ -21,6 +32,9 @@ export default function GapReportPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  /** True once a snapshot had to be stored on this device (migration 0028 pending). */
+  const [offline, setOffline] = useState(false);
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -60,12 +74,31 @@ export default function GapReportPage() {
     if (!session || !report) return;
     setSaving(true);
     setErr(null);
+    const userId = session.user.id;
+    const snapshot: StoredSnapshot = { id: localId(), student_id: userId, report, created_at: nowIso() };
+
     try {
-      const { error } = await supabase.from("gap_reports").insert({
-        student_id: session.user.id,
+      // Snapshots taken while the table was missing get pushed up first.
+      await syncLocalRows<StoredSnapshot>(userId, TABLE, async (pending) => {
+        const { error: pushError } = await supabase.from(TABLE).insert(pending);
+        return { error: pushError };
+      });
+
+      const { error } = await supabase.from(TABLE).insert({
+        student_id: userId,
         report: report as unknown as Record<string, unknown>,
       });
-      if (error) throw error;
+
+      if (isMissingTable(error)) {
+        saveLocalRows<StoredSnapshot>(userId, TABLE, [...localRows<StoredSnapshot>(userId, TABLE), snapshot]);
+        setOffline(true);
+        setToast("Snapshot saved on this device");
+      } else if (error) {
+        throw error;
+      } else {
+        setOffline(false);
+        setToast("Snapshot saved");
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not save report");
     } finally {
@@ -112,6 +145,13 @@ export default function GapReportPage() {
       />
 
       <ErrorNote>{err}</ErrorNote>
+      {offline ? (
+        <DeviceNote>
+          Snapshots are saving on this device for now. They move into your account automatically the first time you save
+          after the database tables are created.
+        </DeviceNote>
+      ) : null}
+      <Toast message={toast} />
 
       {/* Summary */}
       <Card className="mb-6">

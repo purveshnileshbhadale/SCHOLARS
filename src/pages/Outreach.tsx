@@ -3,8 +3,15 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
 import type { OutreachContact, OutreachStatus } from "../lib/types";
-import { Badge, Button, Card, DeadlineChip, Empty, ErrorNote, Input, PageHeader, Select, Spinner, Textarea, Toast } from "../components/ui";
+import { hasLocalRows, isMissingTable, localId, localRows, nowIso, saveLocalRows, syncLocalRows } from "../lib/offline";
+import { Badge, Button, Card, DeadlineChip, DeviceNote, Empty, ErrorNote, Input, PageHeader, Select, Spinner, Textarea, Toast } from "../components/ui";
 import { cx } from "../lib/utils";
+
+const TABLE = "outreach_contacts";
+
+const byFollowUp = (a: OutreachContact, b: OutreachContact) =>
+  (a.follow_up_at ?? "9999-12-31").localeCompare(b.follow_up_at ?? "9999-12-31") || a.sort_order - b.sort_order;
+
 
 const STATUSES: OutreachStatus[] = ["to_contact", "drafted", "sent", "replied", "meeting_booked", "closed"];
 
@@ -44,17 +51,53 @@ export default function Outreach() {
   const [filter, setFilter] = useState<OutreachStatus | "all">("all");
   const [notesId, setNotesId] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState("");
+  /** True while the outreach_contacts table is missing (migration pending). */
+  const [offline, setOffline] = useState(false);
+  const uid = session?.user.id ?? "";
+
+  function persist(next: OutreachContact[]) {
+    const sorted = [...next].sort(byFollowUp);
+    setRows(sorted);
+    if (offline) saveLocalRows(uid, TABLE, sorted);
+  }
 
   const load = useCallback(async () => {
     if (!session) return;
-    const { data, error } = await supabase
-      .from("outreach_contacts")
-      .select("*")
-      .eq("student_id", session.user.id)
-      .order("follow_up_at", { ascending: true, nullsFirst: false })
-      .order("sort_order");
-    if (error) setErr(error.message);
+    const query = () =>
+      supabase
+        .from(TABLE)
+        .select("*")
+        .eq("student_id", session.user.id)
+        .order("follow_up_at", { ascending: true, nullsFirst: false })
+        .order("sort_order");
+
+    let { data, error } = await query();
+
+    if (isMissingTable(error)) {
+      // Migration 0029 has not been applied yet — keep the pipeline usable locally.
+      setRows(localRows<OutreachContact>(session.user.id, TABLE).sort(byFollowUp));
+      setOffline(true);
+      setLoading(false);
+      return;
+    }
+
+    if (error) {
+      setErr(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (hasLocalRows(session.user.id, TABLE)) {
+      await syncLocalRows<OutreachContact>(session.user.id, TABLE, async (pending) => {
+        const { error: pushError } = await supabase.from(TABLE).insert(pending);
+        return { error: pushError };
+      });
+      ({ data, error } = await query());
+      if (error) setErr(error.message);
+    }
+
     setRows((data as OutreachContact[]) ?? []);
+    setOffline(false);
     setLoading(false);
   }, [session]);
 
@@ -67,8 +110,34 @@ export default function Outreach() {
     if (!form.name.trim()) return;
     setBusy(true);
     setErr(null);
+
+    if (offline) {
+      const row: OutreachContact = {
+        id: localId(),
+        student_id: uid,
+        name: form.name.trim(),
+        institution: form.institution.trim() || null,
+        department: form.department.trim() || null,
+        email: form.email.trim() || null,
+        research_area: form.research_area.trim() || null,
+        status: "to_contact",
+        last_contacted_at: null,
+        follow_up_at: form.follow_up_at || null,
+        notes: form.notes.trim() || null,
+        sort_order: rows.length,
+        created_at: nowIso(),
+        updated_at: nowIso(),
+      };
+      persist([...rows, row]);
+      setForm(EMPTY);
+      setShowAdd(false);
+      setToast("Contact added");
+      setBusy(false);
+      return;
+    }
+
     const { data, error } = await supabase
-      .from("outreach_contacts")
+      .from(TABLE)
       .insert({
         student_id: session!.user.id,
         name: form.name.trim(),
@@ -93,24 +162,40 @@ export default function Outreach() {
   }
 
   async function setStatus(id: string, status: OutreachStatus) {
-    setRows((r) => r.map((x) => (x.id === id ? { ...x, status } : x)));
-    const patch: Record<string, unknown> = { status };
-    if (status === "sent") patch.last_contacted_at = new Date().toISOString();
-    const { error } = await supabase.from("outreach_contacts").update(patch).eq("id", id);
+    const patch: Partial<OutreachContact> = { status };
+    if (status === "sent") patch.last_contacted_at = nowIso();
+
+    if (offline) {
+      persist(rows.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+      return;
+    }
+
+    setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    const { error } = await supabase.from(TABLE).update(patch).eq("id", id);
     if (error) setErr(error.message);
   }
 
   async function saveNotes(id: string) {
+    if (offline) {
+      persist(rows.map((x) => (x.id === id ? { ...x, notes: notesDraft } : x)));
+      setToast("Notes saved");
+      setNotesId(null);
+      return;
+    }
     setRows((r) => r.map((x) => (x.id === id ? { ...x, notes: notesDraft } : x)));
-    const { error } = await supabase.from("outreach_contacts").update({ notes: notesDraft }).eq("id", id);
+    const { error } = await supabase.from(TABLE).update({ notes: notesDraft }).eq("id", id);
     if (error) setErr(error.message);
     else setToast("Notes saved");
     setNotesId(null);
   }
 
   async function remove(id: string) {
+    if (offline) {
+      persist(rows.filter((x) => x.id !== id));
+      return;
+    }
     setRows((r) => r.filter((x) => x.id !== id));
-    const { error } = await supabase.from("outreach_contacts").delete().eq("id", id);
+    const { error } = await supabase.from(TABLE).delete().eq("id", id);
     if (error) setErr(error.message);
   }
 
@@ -142,6 +227,12 @@ export default function Outreach() {
         }
       />
       <ErrorNote>{err}</ErrorNote>
+      {offline ? (
+        <DeviceNote>
+          Saving on this device for now. Your outreach history is kept here and moves into your account automatically the
+          first time you open this page after the database tables are created.
+        </DeviceNote>
+      ) : null}
       <Toast message={toast} />
 
       {/* Pipeline summary */}

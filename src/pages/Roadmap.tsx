@@ -15,8 +15,24 @@ import {
   type Intensity,
   type RoadmapTask,
 } from "../lib/roadmap";
-import { Badge, Button, Card, Empty, ErrorNote, PageHeader, Spinner, Toast } from "../components/ui";
+import {
+  isMissingColumn,
+  isMissingTable,
+  localRows,
+  nowIso,
+  readLocalMap,
+  saveLocalRows,
+  syncLocalRows,
+  writeLocalMap,
+} from "../lib/offline";
+import { Badge, Button, Card, DeviceNote, Empty, ErrorNote, PageHeader, Spinner, Toast } from "../components/ui";
 import { cx } from "../lib/utils";
+
+const TABLE = "roadmap_tasks";
+const STATUS_KEY = "roadmap_status";
+
+type TaskStatus = "pending" | "in_progress" | "done" | "skipped";
+
 
 const INTENSITY_HINT: Record<Intensity, string> = {
   light: "~5 hrs/week — fits around school and exams",
@@ -36,7 +52,11 @@ export default function RoadmapPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   /** Statuses keyed by task key (synced with DB when available). */
-  const [statuses, setStatuses] = useState<Record<string, "pending" | "in_progress" | "done" | "skipped">>({});
+  const [statuses, setStatuses] = useState<Record<string, TaskStatus>>({});
+  /** Statuses from rows saved before task_key existed, keyed by title. */
+  const [statusByTitle, setStatusByTitle] = useState<Record<string, TaskStatus>>({});
+  /** True while the roadmap_tasks table is missing (migration 0028 pending). */
+  const [offline, setOffline] = useState(false);
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -59,19 +79,48 @@ export default function RoadmapPage() {
     localStorage.setItem("sa_intensity", intensity);
   }, [intensity]);
 
-  // Load saved statuses from roadmap_tasks.
+  // Load saved statuses from roadmap_tasks, or from this device before the migration runs.
   useEffect(() => {
     if (!session) return;
-    supabase
-      .from("roadmap_tasks")
-      .select("title, status")
-      .eq("student_id", session.user.id)
-      .then(({ data }) => {
-        if (!data?.length) return;
-        const map: Record<string, "pending" | "in_progress" | "done" | "skipped"> = {};
-        for (const row of data) map[row.title] = row.status;
-        setStatuses(map);
-      });
+    let cancelled = false;
+    (async () => {
+      const stored = readLocalMap<TaskStatus>(session.user.id, STATUS_KEY);
+      const query = () => supabase.from(TABLE).select("*").eq("student_id", session.user.id);
+      let { data, error } = await query();
+
+      if (cancelled) return;
+
+      if (isMissingTable(error)) {
+        setStatuses(stored);
+        setOffline(true);
+        return;
+      }
+
+      // The table exists now: push whatever was saved on this device first.
+      if (!error && localRows<Record<string, unknown>>(session.user.id, TABLE).length) {
+        await syncLocalRows<Record<string, unknown>>(session.user.id, TABLE, async (pending) => {
+          const res = await upsertTasks(pending);
+          return { error: res };
+        });
+        ({ data, error } = await query());
+        if (cancelled) return;
+      }
+
+      const map: Record<string, TaskStatus> = {};
+      const byTitle: Record<string, TaskStatus> = {};
+      for (const row of (data ?? []) as { task_key?: string | null; title: string; status: TaskStatus }[]) {
+        if (row.task_key) map[row.task_key] = row.status;
+        else byTitle[row.title] = row.status;
+      }
+      setStatuses({ ...map, ...stored });
+      setStatusByTitle(byTitle);
+      setOffline(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // upsertTasks is stable for the life of this component (it only reads props/state).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const planned = useMemo<RoadmapTask[]>(() => {
@@ -105,8 +154,12 @@ export default function RoadmapPage() {
 
   // Merge planned tasks with saved statuses.
   const merged = useMemo(
-    () => planned.map((t) => ({ ...t, status: statuses[t.key] ?? ("pending" as const) })),
-    [planned, statuses],
+    () =>
+      planned.map((t) => ({
+        ...t,
+        status: statuses[t.key] ?? statusByTitle[t.title] ?? ("pending" as const),
+      })),
+    [planned, statuses, statusByTitle],
   );
 
   const months = useMemo(() => groupByMonth(merged), [merged]);
@@ -116,29 +169,68 @@ export default function RoadmapPage() {
   const total = merged.length;
   const progressPct = total ? Math.round((doneCount / total) * 100) : 0;
 
-  async function setStatus(taskKey: string, status: "pending" | "in_progress" | "done" | "skipped") {
-    setStatuses((prev) => ({ ...prev, [taskKey]: status }));
+  /** A row in the shape roadmap_tasks expects, including the stable task key. */
+  function rowFor(t: RoadmapTask, status: TaskStatus, order: number) {
+    return {
+      student_id: session!.user.id,
+      task_key: t.key,
+      title: t.title,
+      description: t.description,
+      category: t.category,
+      due_date: t.dueDate,
+      start_date: t.startDate,
+      hours_per_week: t.hoursPerWeek,
+      status,
+      completed_at: status === "done" ? nowIso() : null,
+      intensity,
+      sort_order: order,
+      gap_id: t.gapKey ?? null,
+    };
+  }
+
+  /** Upsert with task_key; falls back to title on a table created before task_key existed. */
+  async function upsertTasks(rows: Record<string, unknown>[]) {
+    let { error } = await supabase.from(TABLE).upsert(rows, { onConflict: "student_id,task_key" });
+    if (isMissingColumn(error)) {
+      const legacy = rows.map(({ task_key: _ignored, ...rest }) => rest);
+      ({ error } = await supabase.from(TABLE).upsert(legacy, { onConflict: "student_id,title" }));
+    }
+    return error;
+  }
+
+  // Once the table exists, push statuses captured on this device.
+  useEffect(() => {
+    if (offline || !session || !planned.length) return;
+    const pending = readLocalMap<TaskStatus>(session.user.id, STATUS_KEY);
+    const keys = Object.keys(pending).filter((k) => pending[k]);
+    if (!keys.length) return;
+    const rows = keys
+      .map((k) => planned.find((t) => t.key === k))
+      .filter((t): t is RoadmapTask => !!t)
+      .map((t, i) => rowFor(t, pending[t.key], i));
+    if (!rows.length) return;
+    upsertTasks(rows).then((error) => {
+      if (!error || error.code === "23505") writeLocalMap(session.user.id, STATUS_KEY, {});
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offline, session, planned]);
+
+  async function setStatus(taskKey: string, status: TaskStatus) {
+    const next = { ...statuses, [taskKey]: status };
+    setStatuses(next);
     if (!session) return;
-    // Upsert into roadmap_tasks so it persists.
+
+    const task = planned.find((t) => t.key === taskKey);
+    if (!task) return;
+
+    if (offline) {
+      writeLocalMap(session.user.id, STATUS_KEY, { ...readLocalMap<TaskStatus>(session.user.id, STATUS_KEY), [taskKey]: status });
+      if (status === "done") setToast("Task marked done — saved on this device");
+      return;
+    }
+
     try {
-      const task = merged.find((t) => t.key === taskKey);
-      if (!task) return;
-      const { error } = await supabase.from("roadmap_tasks").upsert(
-        {
-          student_id: session.user.id,
-          title: task.title,
-          description: task.description,
-          category: task.category,
-          due_date: task.dueDate,
-          start_date: task.startDate,
-          hours_per_week: task.hoursPerWeek,
-          status,
-          completed_at: status === "done" ? new Date().toISOString() : null,
-          intensity,
-          sort_order: planned.findIndex((t2) => t2.key === taskKey),
-        },
-        { onConflict: "student_id,title" },
-      );
+      const error = await upsertTasks([rowFor(task, status, planned.findIndex((t) => t.key === taskKey))]);
       if (error) console.warn("roadmap save", error);
       if (status === "done") setToast("Task marked done");
     } catch {
@@ -151,21 +243,17 @@ export default function RoadmapPage() {
     setBusy(true);
     setErr(null);
     try {
-      const rows = planned.map((t, i) => ({
-        student_id: session.user.id,
-        title: t.title,
-        description: t.description,
-        category: t.category,
-        due_date: t.dueDate,
-        start_date: t.startDate,
-        hours_per_week: t.hoursPerWeek,
-        status: statuses[t.title] ?? "pending",
-        intensity,
-        sort_order: i,
-        gap_id: t.gapKey ?? null,
-      }));
-      const { error } = await supabase.from("roadmap_tasks").upsert(rows, { onConflict: "student_id,title" });
-      if (error) throw error;
+      const rows = planned.map((t, i) => rowFor(t, statuses[t.key] ?? statusByTitle[t.title] ?? "pending", i));
+
+      if (offline) {
+        saveLocalRows(session.user.id, TABLE, rows);
+        writeLocalMap(session.user.id, STATUS_KEY, statuses);
+        setToast("Roadmap saved on this device");
+        return;
+      }
+
+      const error = await upsertTasks(rows);
+      if (error) throw new Error(error.message);
       setToast("Roadmap saved");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not save roadmap");
@@ -207,6 +295,12 @@ export default function RoadmapPage() {
       />
 
       <ErrorNote>{err}</ErrorNote>
+      {offline ? (
+        <DeviceNote>
+          Progress is saving on this device for now. Ticks and saved plans move into your account automatically the first time
+          you open this page after the database tables are created.
+        </DeviceNote>
+      ) : null}
       <Toast message={toast} />
 
       {/* Intensity picker */}

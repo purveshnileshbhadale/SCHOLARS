@@ -158,6 +158,18 @@ export function ErrorNote({ children }: { children: ReactNode }) {
   );
 }
 
+/** Shown when a feature is saving to this browser instead of the cloud. */
+export function DeviceNote({ children }: { children: ReactNode }) {
+  return (
+    <div className="mb-4 flex items-start gap-2 rounded-xl border border-slate-200/80 bg-white/70 px-3.5 py-2.5 text-xs leading-relaxed text-slate-600">
+      <svg viewBox="0 0 24 24" className="mt-0.5 size-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
+      </svg>
+      <span>{children}</span>
+    </div>
+  );
+}
+
 export function Toast({ message }: { message: string | null }) {
   if (!message) return null;
   return (

@@ -3,9 +3,16 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
 import type { ScholarshipApplication, ScholarshipAppStatus } from "../lib/types";
+import { hasLocalRows, isMissingTable, localId, localRows, nowIso, saveLocalRows, syncLocalRows } from "../lib/offline";
 import { money } from "../lib/utils";
-import { Badge, Button, Card, DeadlineChip, Empty, ErrorNote, Input, PageHeader, Select, Spinner, Textarea, Toast } from "../components/ui";
+import { Badge, Button, Card, DeadlineChip, DeviceNote, Empty, ErrorNote, Input, PageHeader, Select, Spinner, Textarea, Toast } from "../components/ui";
 import { cx } from "../lib/utils";
+
+const TABLE = "scholarship_applications";
+
+const byDeadline = (a: ScholarshipApplication, b: ScholarshipApplication) =>
+  (a.deadline ?? "9999-12-31").localeCompare(b.deadline ?? "9999-12-31") || a.sort_order - b.sort_order;
+
 
 const STATUSES: ScholarshipAppStatus[] = ["saved", "drafting", "submitted", "shortlisted", "awarded", "rejected", "expired"];
 
@@ -42,17 +49,55 @@ export default function ScholarshipTracker() {
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState<NewApp>(EMPTY_NEW);
   const [filter, setFilter] = useState<ScholarshipAppStatus | "all">("all");
+  /** True while the scholarship_applications table is missing (migration pending). */
+  const [offline, setOffline] = useState(false);
+  const uid = session?.user.id ?? "";
+
+  /** Writes go straight to the browser store while offline, and to the DB otherwise. */
+  function persist(next: ScholarshipApplication[]) {
+    const sorted = [...next].sort(byDeadline);
+    setRows(sorted);
+    if (offline) saveLocalRows(uid, TABLE, sorted);
+  }
 
   const load = useCallback(async () => {
     if (!session) return;
-    const { data, error } = await supabase
-      .from("scholarship_applications")
-      .select("*")
-      .eq("student_id", session.user.id)
-      .order("deadline", { ascending: true, nullsFirst: false })
-      .order("sort_order");
-    if (error) setErr(error.message);
+    const query = () =>
+      supabase
+        .from(TABLE)
+        .select("*")
+        .eq("student_id", session.user.id)
+        .order("deadline", { ascending: true, nullsFirst: false })
+        .order("sort_order");
+
+    let { data, error } = await query();
+
+    if (isMissingTable(error)) {
+      // Migration 0029 has not been applied yet — the tracker still works on this device.
+      setRows(localRows<ScholarshipApplication>(session.user.id, TABLE).sort(byDeadline));
+      setOffline(true);
+      setLoading(false);
+      return;
+    }
+
+    if (error) {
+      setErr(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // The table exists now: push anything captured while it did not.
+    if (hasLocalRows(session.user.id, TABLE)) {
+      await syncLocalRows<ScholarshipApplication>(session.user.id, TABLE, async (pending) => {
+        const { error: pushError } = await supabase.from(TABLE).insert(pending);
+        return { error: pushError };
+      });
+      ({ data, error } = await query());
+      if (error) setErr(error.message);
+    }
+
     setRows((data as ScholarshipApplication[]) ?? []);
+    setOffline(false);
     setLoading(false);
   }, [session]);
 
@@ -65,8 +110,35 @@ export default function ScholarshipTracker() {
     if (!form.scholarship_name.trim()) return;
     setBusy(true);
     setErr(null);
+
+    if (offline) {
+      const row: ScholarshipApplication = {
+        id: localId(),
+        student_id: uid,
+        scholarship_id: null,
+        scholarship_name: form.scholarship_name.trim(),
+        provider: form.provider.trim() || null,
+        amount_aud: form.amount_aud ? Number(form.amount_aud) : null,
+        deadline: form.deadline || null,
+        status: "saved",
+        submitted_at: null,
+        outcome_at: null,
+        notes: form.notes.trim() || null,
+        doc_url: null,
+        sort_order: rows.length,
+        created_at: nowIso(),
+        updated_at: nowIso(),
+      };
+      persist([...rows, row]);
+      setForm(EMPTY_NEW);
+      setShowAdd(false);
+      setToast("Scholarship added");
+      setBusy(false);
+      return;
+    }
+
     const { data, error } = await supabase
-      .from("scholarship_applications")
+      .from(TABLE)
       .insert({
         student_id: session!.user.id,
         scholarship_name: form.scholarship_name.trim(),
@@ -89,17 +161,27 @@ export default function ScholarshipTracker() {
   }
 
   async function setStatus(id: string, status: ScholarshipAppStatus) {
-    setRows((r) => r.map((x) => (x.id === id ? { ...x, status } : x)));
-    const patch: Record<string, unknown> = { status };
-    if (status === "submitted") patch.submitted_at = new Date().toISOString();
-    if (status === "awarded" || status === "rejected") patch.outcome_at = new Date().toISOString();
-    const { error } = await supabase.from("scholarship_applications").update(patch).eq("id", id);
+    const patch: Partial<ScholarshipApplication> = { status };
+    if (status === "submitted") patch.submitted_at = nowIso();
+    if (status === "awarded" || status === "rejected") patch.outcome_at = nowIso();
+
+    if (offline) {
+      persist(rows.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+      return;
+    }
+
+    setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    const { error } = await supabase.from(TABLE).update(patch).eq("id", id);
     if (error) setErr(error.message);
   }
 
   async function remove(id: string) {
+    if (offline) {
+      persist(rows.filter((x) => x.id !== id));
+      return;
+    }
     setRows((r) => r.filter((x) => x.id !== id));
-    const { error } = await supabase.from("scholarship_applications").delete().eq("id", id);
+    const { error } = await supabase.from(TABLE).delete().eq("id", id);
     if (error) setErr(error.message);
   }
 
@@ -131,6 +213,12 @@ export default function ScholarshipTracker() {
         }
       />
       <ErrorNote>{err}</ErrorNote>
+      {offline ? (
+        <DeviceNote>
+          Saving on this device for now. Everything you add here is kept and moves into your account automatically the first
+          time you open this page after the database tables are created.
+        </DeviceNote>
+      ) : null}
       <Toast message={toast} />
 
       {/* Pipeline summary */}
