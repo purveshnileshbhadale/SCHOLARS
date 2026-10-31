@@ -29,6 +29,7 @@ const INFO: Record<string, string> = {
   "/validity": "Expiry radar for passports, English scores, OSHC, visas and any date you track — sorted by how soon it bites.",
   "/applications": "Track every application — milestones, offer conditions and visa checklist.",
   "/documents": "Store and verify transcripts, IDs, letters and resumes in one place.",
+  "/evidence": "The exact document pack a student visa asks for — built from how you are funded, who is coming with you and your history, with a readiness score.",
   "/deadlines": "Every deadline on one timeline with reminders, lead-time control and calendar export.",
   "/cv": "One-page printable CV built from your profile — open, print or save as PDF.",
   "/counsellors": "Book expert counselling sessions for course, visa and admission guidance.",
@@ -60,7 +61,7 @@ const GROUPS: { title: string; blurb: string; keys: string[] }[] = [
   {
     title: "Plan & apply",
     blurb: "From gap analysis to offer letter",
-    keys: ["/gaps", "/roadmap", "/what-if", "/applications", "/compare-offers", "/scholarship-tracker", "/deadlines", "/documents", "/sop", "/cv", "/interview", "/outreach", "/test-prep", "/gpa", "/tools"],
+    keys: ["/gaps", "/roadmap", "/what-if", "/applications", "/compare-offers", "/scholarship-tracker", "/deadlines", "/documents", "/evidence", "/sop", "/cv", "/interview", "/outreach", "/test-prep", "/gpa", "/tools"],
   },
   {
     title: "After you accept",
