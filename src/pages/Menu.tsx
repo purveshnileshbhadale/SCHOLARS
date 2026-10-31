@@ -14,6 +14,9 @@ const INFO: Record<string, string> = {
   "/sop": "Structured SOP questionnaire with AI feedback, version history and compare view.",
   "/gaps": "Where you stand against admitted-student benchmarks — gaps ranked by impact, fixability and urgency.",
   "/roadmap": "Month-by-month plan built backwards from your deadlines. Tick tasks, pick intensity, re-plan as you progress.",
+  "/what-if": "Change IELTS, marks or budget and watch admission bands, fit scores and PR points recompute — same rules engines, nothing saved to your profile.",
+  "/interview": "Genuine Student interview rehearsal — 18 real questions, what the officer is testing, and a fact checklist for every answer.",
+  "/oshc": "Overseas Student Health Cover planner — the exact window a student visa needs, plus your provider quotes compared side by side.",
   "/scholarship-tracker": "Pipeline for every scholarship — saved, drafting, submitted, shortlisted, awarded. Deadlines and outcomes in one view.",
   "/outreach": "Cold-email pipeline for professors, researchers and alumni — drafted to meeting booked, with follow-up dates.",
   "/test-prep": "IELTS/PTE practice — academic flashcards, a timed Task 2 writer with band self-checks, cue cards with timers and a score converter.",
@@ -57,12 +60,12 @@ const GROUPS: { title: string; blurb: string; keys: string[] }[] = [
   {
     title: "Plan & apply",
     blurb: "From gap analysis to offer letter",
-    keys: ["/gaps", "/roadmap", "/applications", "/compare-offers", "/scholarship-tracker", "/deadlines", "/documents", "/sop", "/cv", "/outreach", "/test-prep", "/gpa", "/tools"],
+    keys: ["/gaps", "/roadmap", "/what-if", "/applications", "/compare-offers", "/scholarship-tracker", "/deadlines", "/documents", "/sop", "/cv", "/interview", "/outreach", "/test-prep", "/gpa", "/tools"],
   },
   {
     title: "After you accept",
     blurb: "Housing, work rights and the PR pathway",
-    keys: ["/pre-departure", "/work-rights", "/budget", "/validity", "/pr-pathway"],
+    keys: ["/pre-departure", "/oshc", "/work-rights", "/budget", "/validity", "/pr-pathway"],
   },
   {
     title: "Get help",

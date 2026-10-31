@@ -86,6 +86,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
       items: [
         { to: "/gaps", label: "Gap report", icon: "target" },
         { to: "/roadmap", label: "Roadmap", icon: "map" },
+        { to: "/what-if", label: "Scenario lab", icon: "chart" },
         { to: "/applications", label: "Applications", icon: "clipboard" },
         { to: "/compare-offers", label: "Compare offers", icon: "columns" },
         { to: "/scholarship-tracker", label: "Scholarship tracker", icon: "trophy" },
@@ -93,6 +94,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
         { to: "/documents", label: "Documents", icon: "folder" },
         { to: "/sop", label: "SOP", icon: "file" },
         { to: "/cv", label: "CV", icon: "user" },
+        { to: "/interview", label: "Visa interview", icon: "message" },
         { to: "/outreach", label: "Outreach", icon: "send" },
         { to: "/test-prep", label: "Test prep", icon: "brain" },
         { to: "/gpa", label: "GPA & WAM", icon: "calculator" },
@@ -103,6 +105,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
       title: "After you accept",
       items: [
         { to: "/pre-departure", label: "Pre-departure", icon: "plane" },
+        { to: "/oshc", label: "OSHC cover", icon: "shield" },
         { to: "/work-rights", label: "Work rights", icon: "briefcase" },
         { to: "/budget", label: "Budget", icon: "wallet" },
         { to: "/validity", label: "Expiry radar", icon: "hourglass" },
