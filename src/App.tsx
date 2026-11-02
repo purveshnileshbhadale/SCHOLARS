@@ -49,6 +49,7 @@ const WhatIf = lazy(() => import("./pages/WhatIf"));
 const Oshc = lazy(() => import("./pages/Oshc"));
 const Interview = lazy(() => import("./pages/Interview"));
 const Evidence = lazy(() => import("./pages/Evidence"));
+const Runway = lazy(() => import("./pages/Runway"));
 const CounsellorHome = lazy(() => import("./pages/counsellor/CounsellorHome"));
 const CounsellorBookings = lazy(() => import("./pages/counsellor/CounsellorBookings"));
 const CounsellorStudent = lazy(() => import("./pages/counsellor/CounsellorStudent"));
@@ -207,6 +208,7 @@ export default function App() {
         <Route path="/oshc" element={<Guard><Oshc /></Guard>} />
         <Route path="/interview" element={<Guard><Interview /></Guard>} />
         <Route path="/evidence" element={<Guard><Evidence /></Guard>} />
+        <Route path="/runway" element={<Guard><Runway /></Guard>} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/counsellor" element={<Guard role="counsellor"><CounsellorHome /></Guard>} />

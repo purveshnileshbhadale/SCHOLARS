@@ -30,6 +30,7 @@ const INFO: Record<string, string> = {
   "/applications": "Track every application — milestones, offer conditions and visa checklist.",
   "/documents": "Store and verify transcripts, IDs, letters and resumes in one place.",
   "/evidence": "The exact document pack a student visa asks for — built from how you are funded, who is coming with you and your history, with a readiness score.",
+  "/runway": "Can your shortlist actually be funded, and at what savings pace — degree costs vs your savings, scholarship and loan.",
   "/deadlines": "Every deadline on one timeline with reminders, lead-time control and calendar export.",
   "/cv": "One-page printable CV built from your profile — open, print or save as PDF.",
   "/counsellors": "Book expert counselling sessions for course, visa and admission guidance.",

@@ -93,6 +93,7 @@ export function groupsFor(role: string | undefined): NavGroup[] {
         { to: "/deadlines", label: "Deadlines", icon: "calendar" },
         { to: "/documents", label: "Documents", icon: "folder" },
         { to: "/evidence", label: "Evidence pack", icon: "check" },
+        { to: "/runway", label: "Affordability", icon: "dollar" },
         { to: "/sop", label: "SOP", icon: "file" },
         { to: "/cv", label: "CV", icon: "user" },
         { to: "/interview", label: "Visa interview", icon: "message" },
